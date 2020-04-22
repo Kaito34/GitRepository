@@ -77,10 +77,12 @@ class Image_recognition:
 
     @property
     def click(self):
-        self.ransec = random.uniform(0,0.2)
-        time.sleep(self.ransec)
-        self.pos_x,self.pos_y =  self.pos
-        pg.click(self.pos_x,self.pos_y)
+        if self == Image_recognition('dummy'):
+            pass
+        else:
+            time.sleep(random.uniform(0,0.2))
+            self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox)
+            pg.click(self.pos_x,self.pos_y)
 
 
 
@@ -99,7 +101,7 @@ class Where:
 [todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
 class Read_img:
     def __init__(self,info):
-        self.l = [[] for i in range(18)]
+        self.l = [[] for i in range(20)]
         self.l[0] = self.ok = Image_recognition("ok.png")
         self.l[1] = self.reload = Image_recognition("reload2.png")
         self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
@@ -116,9 +118,11 @@ class Read_img:
         self.l[13] = self.summon_choice = Image_recognition("summon_choice2.png")
         self.l[14] = self.attack_cancel = Image_recognition("attack_cancel.png")
         self.l[15] = self.summon_fin = Image_recognition("summon_fin.png")
+        self.l[16] = self.verify1 = Image_recognition("verify1.png")
+        self.l[17] = self.verify2 = Image_recognition("verify2.png")
 
-        self.l[16] = self.summon_friend = Image_recognition(info['summon_friend'])
-        self.l[17] = self.summon_battle = Image_recognition(info["summon_battle"])
+        self.l[18] = self.summon_friend = Image_recognition(info['summon_friend'])
+        self.l[19] = self.summon_battle = Image_recognition(info["summon_battle"])
 
         self.dummy = Image_recognition('dummy')
         self.prepare()
@@ -179,7 +183,9 @@ class BattleFlow(Read_img):
     @property
     def friend_phase(self):
         #フレンド石選択→ok
-        return self.if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,[0.5,1],3)
+        self.if_move([self.summon_friend,self.ok],self.quest_supporter,[0.5],3)
+        self.if_move([self.ok,self.raid_multi],self.quest_supporter,[1],3)
+
 
     """バトル開始から
     1. 召喚石のみ選択(1召喚石)
@@ -230,5 +236,5 @@ if __name__ == "__main__":
 
     B= BattleFlow(info)
 
-    for i in range(20):
-        test()
+    B.dummy.click
+    print('fin')
