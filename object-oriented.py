@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
     #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
 
-    
+
     #フレンド選択画面におけるフレンド召喚石の設定
     R = BattleFlow(info) #attack_command
     R.friend_select
