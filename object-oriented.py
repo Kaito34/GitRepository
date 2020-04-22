@@ -209,11 +209,16 @@ def test():
 
     #フレンド選択画面におけるフレンド召喚石の設定
     B= BattleFlow(info) #attack_command
-    B.friend_phase
-    print("friend_phase fin")
-    B.attack_phase1
-    print("attack_phase1 fin")
-    #BattleFlow('summon_friend.png').battle
+        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
+        sys.exit()
+    elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
+        sys.exit()
+    else:
+        B.friend_phase
+        print("friend_phase fin")
+        B.attack_phase1
+        print("attack_phase1 fin")
+        #BattleFlow('summon_friend.png').battle
 
     """
     #理想
