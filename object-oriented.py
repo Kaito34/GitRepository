@@ -93,19 +93,22 @@ class Where:
 
 """フローの実行クラス"""
 class BattleFlow():
+    #クラス変数
+    stopper = 0
+
     def __init__(self,summon_friend='summon_friend.png'):
-        self.l = []
-        self.l.append(self.summon_friend = Image_recognition(summon_friend))
-        self.l.append(self.ok = Image_recognition("ok.png"))
-        self.l.append(self.reload = Image_recognition("reload.png"))
-        self.l.append(self.bookmark = Image_recognition("bookmark_win.png"))
-        self.l.append(self.quest_supporter = Image_recognition("quest_supporter_win.png"))
-        self.l.append(self.raid_multi = Image_recognition("raid_multi_win.png"))
-        self.l.append(self.raid = Image_recognition("raid_win.png"))
-        self.l.append(self.result_multi = Image_recognition("result_multi_win.png"))
-        self.l.append(self.result = Image_recognition("result_win.png"))
-        self.l.append(self.quest_supporter = Image_recognition("result_multi_win.png"))
-        self.l.append(self.quest_supporter = Image_recognition("result_multi_win.png"))
+        self.l = [[] for i in range(11)]
+        self.l[0] = self.summon_friend = Image_recognition(summon_friend)
+        self.l[1] = self.ok = Image_recognition("ok.png")
+        self.l[2] = self.reload = Image_recognition("reload.png")
+        self.l[3] = self.bookmark = Image_recognition("bookmark_win.png")
+        self.l[4] = self.quest_supporter = Image_recognition("quest_supporter_win.png")
+        self.l[5] = self.raid_multi = Image_recognition("raid_multi_win.png")
+        self.l[6] = self.raid = Image_recognition("raid_win.png")
+        self.l[7] = self.result_multi = Image_recognition("result_multi_win.png")
+        self.l[8] = self.result = Image_recognition("result_win.png")
+        self.l[9] = self.quest_supporter = Image_recognition("result_multi_win.png")
+        self.l[10] = self.quest_supporter = Image_recognition("result_multi_win.png")
 
         self.stopper = 0
         self.prepare()
@@ -117,9 +120,25 @@ class BattleFlow():
                 sys.exit()
 
     """固まった時の対処"""
-    def if_move(self,curlist,url,duration=0):
+    def if_move(self,curlist,url,duration,n):
+        """
+        curlist: 実行したいインスタンスを順に格納したリスト。
+                 最後は遷移が成功したかチェックするためのurlを格納。
+        url:     リロード・ブクマ時の戻り先url。
+        duration:インスタンスの実行から遷移にかかる時間。
+        n:       再帰関数の再帰回数の上限。
+        """
         self.stopper += 1
+        BattleFlow(self.summon_friend).stopper += 1
+        print("self.stopper"+str(self.stopper)+"回目")
+        print("BattleFlow(self.summon_friend).stopper"+str(BattleFlow(self.summon_friend).stopper)+"回目")
+        print("n"+str(n)+"回目")
+
         if self.stopper > 2:
+            sys.exit()
+        if BattleFlow(self.summon_friend).stopper > 4:
+            sys.exit()
+        if n == 0:
             sys.exit()
         for num in range(len(curlist)-1):
             try:
@@ -133,15 +152,15 @@ class BattleFlow():
                         pass
                     else:
                         BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
-                        return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration=0)
+                        return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration,n-1)
             except:
-                BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
-                return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration)
+                BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5,n-1)
+                return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration,n-1)
 
     """フレンド選択からバトルスタートのフロー"""
     @property
     def friend_select(self):
-        return BattleFlow(self.summon_friend).if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,1)
+        return BattleFlow(self.summon_friend).if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,1,3)
 
 
 
