@@ -68,6 +68,7 @@ class Image_recognition:
         #現在地によって機能を変える(未実装)
         return pos_x,pos_y
 
+    @property
     def click(self):
         try:
             self.__pos_x,self.__pos_y =  Image_recognition(self.__filename).pos()
@@ -98,7 +99,7 @@ class BattleFlow:
 
     """フレンド選択からバトルスタートのフロー"""
     def friend_select(self):
-        if
+        sf =0
 
 
 if __name__ == "__main__":
@@ -107,16 +108,12 @@ if __name__ == "__main__":
     bookmark
 
 
-    print(bookmark.pos())
-    print(bookmark.judge())
-    bookmark.click()
 
-    """
-    if not quest_supporter.judge_img():
-        Click_class(bookmark.img_pos()).click()
-    Click_class(varuna.img_pos()).click()
-    Click_class(ok.img_pos()).click()
-    """
+    if not quest_supporter.judge_img(): #quest_supporterがない時
+        bookmark.click #bookmarkに移動　#固まった時の対応
+    varuna.click #フレ選択
+    ok.click
+
     """
     #理想
     click(varuna) #フレンド選択
