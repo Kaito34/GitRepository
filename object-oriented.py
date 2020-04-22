@@ -19,7 +19,7 @@ N→段階的に画像検証していく
 """""""""""""""""""""""""""""""""
 
 """画像が収納されているパスの指定"""
-os.chdir("/Users/kusumotokaito/Downloads/granblue")
+os.chdir(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\images")
 
 """グローバル変数"""
 regionbox = (0,0,1000,1500)
@@ -104,14 +104,17 @@ class BattleFlow:
 
 if __name__ == "__main__":
 
+    summon_friend = Image_recognition("summon_friend.png")
     bookmark = Image_recognition("bookmark.png")
-    bookmark
+    varuna = Image_recognition("varuna.png")
+    ok = Image_recognition("ok.png")
 
+    print(ok.pos)
 
-
-    if not quest_supporter.judge_img(): #quest_supporterがない時
+    if not summon_friend.judge(): #quest_supporterがない時
         bookmark.click #bookmarkに移動　#固まった時の対応
-    varuna.click #フレ選択
+    print("sdf")
+    summon_friend.click #フレ選択
     ok.click
 
     """
