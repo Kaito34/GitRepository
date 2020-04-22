@@ -69,15 +69,15 @@ class Image_recognition:
         return pos_x,pos_y
 
     @property
+    def exist(self):
+        return os.path.isfile(self.filename)
+
+    @property
     def click(self):
-        try:
-            #まずはクリックにトライ
-            self.pos_x,self.pos_y =  Image_recognition(self.filename).pos()
-            print(self.pos_x,self.pos_y)
-            pg.click(self.pos_x,self.pos_y)
-            return True
-        except:
-            return False
+        self.pos_x,self.pos_y =  Image_recognition(self.filename).pos()
+        print(self.pos_x,self.pos_y)
+        pg.click(self.pos_x,self.pos_y)
+
 
 
 """現在地を文字認識によって取得"""
@@ -94,33 +94,36 @@ class Where:
 """フローの実行クラス"""
 class BattleFlow():
     def __init__(self,summon_friend='summon_friend.png'):
-        l = [[] for i in range(11)]
-        l[0] = self.summon_friend = Image_recognition(summon_friend)
-        l[1] = self.ok = Image_recognition("ok.png")
-        l[2] = self.reload = Image_recognition("reload.png")
-        l[3] = self.bookmark = Image_recognition("bookmark_win.png")
-        l[4] = self.quest_supporter = Image_recognition("quest_supporter_win.png")
-        l[5] = self.raid_multi = Image_recognition("raid_multi_win.png")
-        l[6] = self.raid = Image_recognition("raid_win.png")
-        l[7] = self.result_multi = Image_recognition("result_multi_win.png")
-        l[8] = self.result = Image_recognition("result_win.png")
-        l[9] = self.quest_supporter = Image_recognition("result_multi_win.png")
-        l[10] = self.quest_supporter = Image_recognition("result_multi_win.png")
+        self.l = []
+        self.l.append(self.summon_friend = Image_recognition(summon_friend))
+        self.l.append(self.ok = Image_recognition("ok.png"))
+        self.l.append(self.reload = Image_recognition("reload.png"))
+        self.l.append(self.bookmark = Image_recognition("bookmark_win.png"))
+        self.l.append(self.quest_supporter = Image_recognition("quest_supporter_win.png"))
+        self.l.append(self.raid_multi = Image_recognition("raid_multi_win.png"))
+        self.l.append(self.raid = Image_recognition("raid_win.png"))
+        self.l.append(self.result_multi = Image_recognition("result_multi_win.png"))
+        self.l.append(self.result = Image_recognition("result_win.png"))
+        self.l.append(self.quest_supporter = Image_recognition("result_multi_win.png"))
+        self.l.append(self.quest_supporter = Image_recognition("result_multi_win.png"))
 
+        self.stopper = 0
         self.prepare()
 
     def prepare(self):
-        for i in range(11)
-            if not l[i].judge():
-                print(l[i].filename+"does not exist.")
+        for i in range(1,len(self.l)):
+            if not self.l[i].exist:
+                print(self.l[i].filename+" does not exist.")
                 sys.exit()
 
     """固まった時の対処"""
-    def if_move(self,curlist,duration=0,url):
+    def if_move(self,curlist,url,duration=0):
+        self.stopper += 1
+        if self.stopper > 2:
+            sys.exit()
         for num in range(len(curlist)-1):
             try:
                 curlist[num].click
-            except:
                 time.sleep(duration)
                 if curlist[num+1].judge():
                     pass
@@ -129,13 +132,16 @@ class BattleFlow():
                     if curlist[num+1].judge():
                         pass
                     else:
-                        if_move([self.reload,self.bookmark,url],0.5)
-                        return if_move(self,curlist,duration=0,url)
+                        if_move([self.reload,self.bookmark,url],url,0.5)
+                        return if_move(self,curlist,url,duration=0)
+            except:
+                BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
+                return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration)
 
     """フレンド選択からバトルスタートのフロー"""
     @property
     def friend_select(self):
-        return if_move([self.summon_friend,self.ok,self.raid_multi],1,self.quest_supporter)
+        return BattleFlow(self.summon_friend).if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,1)
 
 
 
