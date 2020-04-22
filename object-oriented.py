@@ -32,7 +32,8 @@ def convert(x1,y1):
 
 """
 Image_recognition
-  ->
+  -> Read_img
+    -> BattleFlow
 """
 
 """
@@ -65,6 +66,8 @@ class Image_recognition:
             pos_x,pos_y = pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox)
         except:
             pos_x,pos_y = (None,None)
+            if self.filename == 'dummy':
+                pos_x,pos_y = ('dummy','dummy')
         #現在地によって機能を変える(未実装)
         return pos_x,pos_y
 
@@ -76,7 +79,8 @@ class Image_recognition:
     def click(self):
         self.pos_x,self.pos_y =  Image_recognition(self.filename).pos()
         print(self.pos_x,self.pos_y)
-        pg.click(self.pos_x,self.pos_y)
+        if pos_x != 'dummy':
+            pg.click(self.pos_x,self.pos_y)
 
 
 
@@ -91,33 +95,47 @@ class Where:
             return True
 
 
-"""フローの実行クラス"""
-class BattleFlow():
-    #クラス変数
-    stopper = 0
-
-    def __init__(self,summon_friend='summon_friend.png'):
+"""必要な画像インスタンスを読み込クラス
+[todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
+class Read_img:
+    def __init__(self,info):
         self.l = [[] for i in range(11)]
-        self.l[0] = self.summon_friend = Image_recognition(summon_friend)
-        self.l[1] = self.ok = Image_recognition("ok.png")
-        self.l[2] = self.reload = Image_recognition("reload.png")
-        self.l[3] = self.bookmark = Image_recognition("bookmark_win.png")
-        self.l[4] = self.quest_supporter = Image_recognition("quest_supporter_win.png")
-        self.l[5] = self.raid_multi = Image_recognition("raid_multi_win.png")
-        self.l[6] = self.raid = Image_recognition("raid_win.png")
-        self.l[7] = self.result_multi = Image_recognition("result_multi_win.png")
-        self.l[8] = self.result = Image_recognition("result_win.png")
+        self.l[0] = self.ok = Image_recognition("ok.png")
+        self.l[1] = self.reload = Image_recognition("reload.png")
+        self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
+        self.l[3] = self.quest_supporter = Image_recognition("quest_supporter_win.png")
+        self.l[4] = self.raid_multi = Image_recognition("raid_multi_win.png")
+        self.l[5] = self.raid = Image_recognition("raid_win.png")
+        self.l[6] = self.result_multi = Image_recognition("result_multi_win.png")
+        self.l[7] = self.result = Image_recognition("result_win.png")
+        self.l[8] = self.quest_supporter = Image_recognition("result_multi_win.png")
         self.l[9] = self.quest_supporter = Image_recognition("result_multi_win.png")
-        self.l[10] = self.quest_supporter = Image_recognition("result_multi_win.png")
+        self.l[10] = self.attack = Image_recognition("attack.png")
+        self.l[11] = self.semi = Image_recognition("semi.png")
+        self.l[12] = self.full = Image_recognition("full.png")
+        self.l[13] = self.summon_choice = Image_recognition("summon_choice.png")
+        self.l[14] = self.attack_cancel = Image_recognition("attack_cancel.png")
+        self.l[15] = self.summon_fin = Image_recognition("summon_fin.png")
 
-        self.stopper = 0
+        self.l[16] = self.summon_friend = Image_recognition(info['summon_friend'])
+        self.l[17] = self.summon_battle = Image_recognition(info["summon_battle.png"])
+
+        self.dummy = Image_recognition('dummy')
         self.prepare()
 
+    """初期設定としてファイル損失やディレクトリパス指定ミス時にエラーを出す"""
     def prepare(self):
-        for i in range(1,len(self.l)):
+        for i in range(len(l)):
             if not self.l[i].exist:
                 print(self.l[i].filename+" does not exist.")
                 sys.exit()
+
+
+'''フローを実行するクラス
+[todo]ランダムで待機時間を設定したい'''
+class BattleFlow(Read_img):
+    def __init__(self,info):
+        self.__R = Read_img(info)
 
     """固まった時の対処"""
     def if_move(self,curlist,url,duration,n):
@@ -126,47 +144,67 @@ class BattleFlow():
                  最後は遷移が成功したかチェックするためのurlを格納。
         url:     リロード・ブクマ時の戻り先url。
         duration:インスタンスの実行から遷移にかかる時間。
-        n:       再帰関数の再帰回数の上限。
+        n:       再帰関数の再帰回数の上限。[todo]初期設定しておく説
         """
-        self.stopper += 1
-        BattleFlow(self.summon_friend).stopper += 1
-        print("self.stopper"+str(self.stopper)+"回目")
-        print("BattleFlow(self.summon_friend).stopper"+str(BattleFlow(self.summon_friend).stopper)+"回目")
-        print("n"+str(n)+"回目")
 
-        if self.stopper > 2:
-            sys.exit()
-        if BattleFlow(self.summon_friend).stopper > 4:
-            sys.exit()
+        print("n"+str(n)+"回目")
         if n == 0:
             sys.exit()
+
         for num in range(len(curlist)-1):
             try:
                 curlist[num].click
-                time.sleep(duration)
+                time.sleep(duration[num])
                 if curlist[num+1].judge():
                     pass
-                elif not curlist[num+1].judge(): #curlist[num+1]がない時
+                elif not curlist[num+1].judge():
                     time.sleep(5)
                     if curlist[num+1].judge():
                         pass
-                    else:
-                        BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
-                        return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration,n-1)
+                    else: #リロード、ブックマーク
+                        self.__R.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
+                        return self.__R.if_move(self,curlist,url,duration,n-1)
             except:
-                BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5,n-1)
-                return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration,n-1)
+                self.__R.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
+                return self.__R.if_move(self,curlist,url,duration,n-1)
+
 
     """フレンド選択からバトルスタートのフロー"""
     @property
-    def friend_select(self):
-        return BattleFlow(self.summon_friend).if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,1,3)
+    def friend_phase(self):
+        #フレンド石選択→ok
+        return self.__R.if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,[1.5,1.5],3)
 
-
+    """バトル開始から
+    1. 召喚石のみ選択(1召喚石)
+    2. 攻撃のみポチる(0ポチ)
+    3. 召喚石を召喚した後、フルオート(1召喚フル)
+    4. 攻撃を押した後、セミオート(セミ)
+    5. リロ殴り
+    6. 指定のアビリティ、召喚石を使用して攻撃(nポチn召喚nオート)
+    """
+    @property
+    def attack_phase1(self):
+        return
+        self.__R.if_move(
+        [self.dummy,self.attack],self.raid_multi,[7],3)
+        ,self.__R.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack,self.summon_fin],self.raid_multi,[0.5,0.5,0.5,0.5],3)
+        ,self.__R.if_move([self.reload,self.bookmark],self.result_multi,[3],3)
+        ,self.__R.if_move([self.bookmark,self.summon_friend],self.result_multi,[4],3)
 
 if __name__ == "__main__":
 
-    BattleFlow('summon_friend.png').friend_select
+    info = {
+    'summon_friend':'summon_friend.png' ,
+    'summon_battle':'rose.png',
+    }
+
+    #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
+
+    
+    #フレンド選択画面におけるフレンド召喚石の設定
+    R = BattleFlow(info) #attack_command
+    R.friend_select
     #BattleFlow('summon_friend.png').battle
 
     """
