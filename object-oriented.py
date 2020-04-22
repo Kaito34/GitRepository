@@ -184,6 +184,10 @@ class BattleFlow(Read_img):
     def friend_phase(self):
         #フレンド石選択→ok
         self.if_move([self.summon_friend,self.ok],self.quest_supporter,[0.5],3)
+        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
+            sys.exit()
+        elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
+            sys.exit()
         self.if_move([self.ok,self.raid_multi],self.quest_supporter,[1],3)
 
 
@@ -214,17 +218,12 @@ class BattleFlow(Read_img):
 def test():
 
     #フレンド選択画面におけるフレンド召喚石の設定
-    B= BattleFlow(info) #attack_command
-        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
-        sys.exit()
-    elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
-        sys.exit()
-    else:
-        B.friend_phase
-        print("friend_phase fin")
-        B.attack_phase1
-        print("attack_phase1 fin")
-        #BattleFlow('summon_friend.png').battle
+
+    B.friend_phase
+    print("friend_phase fin")
+    B.attack_phase1
+    print("attack_phase1 fin")
+    #BattleFlow('summon_friend.png').battle
 
     """
     #理想
