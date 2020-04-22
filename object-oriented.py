@@ -132,8 +132,8 @@ class BattleFlow():
                     if curlist[num+1].judge():
                         pass
                     else:
-                        if_move([self.reload,self.bookmark,url],url,0.5)
-                        return if_move(self,curlist,url,duration=0)
+                        BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
+                        return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration=0)
             except:
                 BattleFlow(self.summon_friend).if_move([self.reload,self.bookmark,url],url,0.5)
                 return BattleFlow(self.summon_friend).if_move(self,curlist,url,duration)
