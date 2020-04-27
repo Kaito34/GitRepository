@@ -23,6 +23,7 @@ os.chdir(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\images"
 
 """グローバル変数"""
 regionbox = (0,0,1000,1500)
+regionbox_hell = ()
 
 #macのズレを修正
 def convert(x1,y1):
@@ -61,6 +62,13 @@ class Image_recognition:
             return False
 
     @property
+    def judge_for_hell(self):
+        if pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox_hell):
+            return True
+        else:
+            return False
+
+    @property
     def pos(self):
         # openCVを用いて範囲内に画像があるか調べる
         #文字認識も有効
@@ -69,6 +77,14 @@ class Image_recognition:
         except:
             self.pos_x,self.pos_y = (None,None)
         #現在地によって機能を変える(未実装)
+        return self.pos_x,self.pos_y
+
+    @property
+    def pos_for_hell(self):
+        try:
+            self.pos_x,self.pos_y = pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox_hell)
+        except:
+            self.pos_x,self.pos_y = (None,None)
         return self.pos_x,self.pos_y
 
     @property
@@ -85,6 +101,11 @@ class Image_recognition:
             self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox)
             pg.click(self.pos_x,self.pos_y)
 
+    @property
+    def click_for_hell(self):
+        time.sleep(random.uniform(0,0.2))
+        self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,confidence=0.8,region=regionbox_hell)
+        pg.click(self.pos_x,self.pos_y)
 
 
 """現在地を文字認識によって取得"""
@@ -102,7 +123,7 @@ class Where:
 [todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
 class Read_img:
     def __init__(self,info):
-        self.l = [[] for i in range(20)]
+        self.l = [[] for i in range(22)]
         self.l[0] = self.ok = Image_recognition("ok.png")
         self.l[1] = self.reload = Image_recognition("reload2.png")
         self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
@@ -121,9 +142,11 @@ class Read_img:
         self.l[15] = self.summon_fin = Image_recognition("summon_fin.png")
         self.l[16] = self.verify1 = Image_recognition("verify1.png")
         self.l[17] = self.verify2 = Image_recognition("verify2.png")
+        self.l[18] = self.hell = Image_recognition("hell.png")
 
-        self.l[18] = self.summon_friend = Image_recognition(info['summon_friend'])
-        self.l[19] = self.summon_battle = Image_recognition(info["summon_battle"])
+        self.l[18] = self.event_url = Image_recognition(info["event_url"])
+        self.l[19] = self.summon_friend = Image_recognition(info['summon_friend'])
+        self.l[20] = self.summon_battle = Image_recognition(info["summon_battle"])
 
         self.dummy = Image_recognition('dummy')
         self.prepare()
@@ -179,6 +202,35 @@ class BattleFlow(Read_img):
                 #self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
                 #return self.if_move(self,curlist,url,duration,n-1)
 
+    """固まった時の対処 for hell"""
+    def if_move_for_hell(self,curlist,url,duration,n):
+
+        print("n"+str(n)+"回目")
+        if n == 0:
+            sys.exit()
+
+        for num in range(len(curlist)-1):
+            #try:
+            curlist[num].click_for_hell
+            print(curlist[num].filename+"clicked")
+            time.sleep(duration[num])
+            print("wait for "+str(duration[num])+"sec")
+            if curlist[num+1].judge:
+                print(curlist[num+1].filename+"was found")
+                pass
+            elif not curlist[num+1].judge:
+                time.sleep(5)
+                print(curlist[num+1].filename+"was not there. wait for 5 sec")
+                if curlist[num+1].judge:
+                    print(curlist[num+1].filename+"was found")
+                    pass
+                else: #リロード、ブックマーク
+                    print("nothing was found. try again.")
+                    self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
+                    return self.if_move(curlist,url,duration,n-1)
+            #except:
+                #self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
+                #return self.if_move(self,curlist,url,duration,n-1)
 
     """フレンド選択からバトルスタートのフロー"""
     @property
@@ -209,12 +261,22 @@ class BattleFlow(Read_img):
         self.if_move([self.bookmark,self.summon_friend],self.result_multi,[4],3)
 
 
+    """hellをスキップできるかをチェックする"""
+    @property
+    def hell_check(self):
+        self.if_move([self.reload,self.event_url],self.event_url,[3],3)
+        if self.hell.judge_for_hell:
+            self.if_move_for_hell([self.hell,self.claim_loot,self.reload,self.event_url],self.reload,[2,3,3],3)
+        else:
+            pass
+
 
     #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
 
 
 #global
 info = {
+'event_url':'triple_zero.png' ,
 'summon_friend':'summon_friend.png' ,
 'summon_battle':'rose.png',
 }
@@ -229,6 +291,8 @@ def test():
     B.attack_phase1
     print("attack_phase1 fin")
     #BattleFlow('summon_friend.png').battle
+
+    B.hell_check
 
     """
     #理想
