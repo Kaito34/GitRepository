@@ -276,7 +276,7 @@ class BattleFlow(Read_img):
 
 #global
 info = {
-'event_url':'triple_zero.png' ,
+'event_url':'event_url.png' ,
 'summon_friend':'summon_friend.png' ,
 'summon_battle':'rose.png',
 }
