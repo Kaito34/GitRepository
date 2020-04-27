@@ -77,7 +77,8 @@ class Image_recognition:
 
     @property
     def click(self):
-        if self == Image_recognition('dummy'):
+        if self.filename =='dummy':
+            print("pass the click action")
             pass
         else:
             time.sleep(random.uniform(0,0.2))
@@ -208,15 +209,18 @@ class BattleFlow(Read_img):
         self.if_move([self.bookmark,self.summon_friend],self.result_multi,[4],3)
 
 
-    info = {
-    'summon_friend':'summon_friend.png' ,
-    'summon_battle':'rose.png',
-    }
 
     #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
 
-def test():
 
+#global
+info = {
+'summon_friend':'summon_friend.png' ,
+'summon_battle':'rose.png',
+}
+
+B= BattleFlow(info)
+def test():
     #フレンド選択画面におけるフレンド召喚石の設定
 
     B.friend_phase
@@ -232,8 +236,5 @@ def test():
     """
 
 if __name__ == "__main__":
-
-    B= BattleFlow(info)
-
-    B.dummy.click
-    print('fin')
+    for i in range(30):
+        test()
