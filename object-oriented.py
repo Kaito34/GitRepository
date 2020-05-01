@@ -237,31 +237,26 @@ class BattleFlow(Read_img):
                 #return self.if_move(self,curlist,url,duration,n-1)
 
     """固まった時の対処 for hell(judge_for_hellみたいに後ろにつけるだけ)"""
-    def if_move_for_hell(self,curlist,url,duration=[0],n=3):
-
+    def if_move_for_hell(self,curlist,url,duration=[0,0,0,0,0],n=3):
         print("n"+str(n)+"回目")
         if n == 0:
             sys.exit()
 
         for num in range(len(curlist)-1):
             #try:
-            curlist[num].click_for_hell
+            curlist[num].click
             print(curlist[num].filename+"clicked")
             time.sleep(duration[num])
+            print("wait for "+str(duration[num])+"sec")
 
-            if curlist[num+1].judge_for_hell:
+            if self.wait_end_for_hell(curlist[num+1],0.5,20):
                 print(curlist[num+1].filename+"was found")
                 pass
-            elif not curlist[num+1].judge_for_hell:
-                time.sleep(5)
-                print(curlist[num+1].filename+"was not there. wait for 5 sec")
-                if curlist[num+1].judge_for_hell:
-                    print(curlist[num+1].filename+"was found")
-                    pass
-                else: #リロード、ブックマーク
-                    print("nothing was found. try again.")
-                    self.if_move_for_hell([self.reload,self.bookmark,url],url,[3,4],n-1)
-                    return self.if_move_for_hell(curlist,url,duration,n-1)
+            else:
+                #リロード、ブックマーク
+                print("nothing was found. try again.")
+                self.if_move_for_hell([self.reload,self.bookmark,url],url,[3,4],n-1)
+                return self.if_move_for_hell(curlist,url,duration,n-1)
             #except:
                 #self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
                 #return self.if_move(self,curlist,url,duration,n-1)
@@ -282,25 +277,45 @@ class BattleFlow(Read_img):
             else:
                 time.sleep(sec)
 
+    def wait_end_for_hell(self,fileobj,sec,max):
+            self.counter=0
+            print("wait till the end")
+            while True:
+                self.counter+=1
+                if fileobj.judge_for_hell:
+                    print("end")
+                    return True
+                    break
+                elif self.counter>max:
+                    return False
+                    break
+                else:
+                    time.sleep(sec)
+
 
     """フレンド選択からバトルスタートのフロー"""
     @property
     def friend_phase(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,[0,0])
+        self.if_move([self.summon_friend,self.raid_multi],self.quest_supporter)
+        self.verify
+        self.if_move(self.ok,self.raid_multi],self.quest_supporter)
 
     @property
     #for solo with ok button
     def friend_phase0(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok,self.quest],self.quest_supporter,[0,0])
+        self.if_move([self.summon_friend,self.quest],self.quest_supporter)
+        self.verify
+        self.if_move(self.ok,self.quest],self.quest_supporter)
 
     @property
     #for solo without ok button
     def friend_phase1(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok,self.raid],self.quest_supporter,[0,0])
-
+        self.if_move([self.summon_friend,self.raid],self.quest_supporter)
+        self.verify
+        self.if_move(self.ok,self.raid],self.quest_supporter)
 
 
     """バトル開始から
@@ -315,7 +330,7 @@ class BattleFlow(Read_img):
     def attack_phase1(self):
         self.if_move(
         [self.dummy,self.attack],self.raid_multi,[5])
-        self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack,self.semi],self.raid_multi,[0.5,0.5,0.5,0])
+        self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack,self.semi],self.raid_multi)
         self.if_move([self.reload,self.bookmark],self.result_multi,[3])
         self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
@@ -347,6 +362,8 @@ class BattleFlow(Read_img):
     @property
     #Items
     def attack_phase5(self):
+        self.if_move(
+        [self.dummy,self.auto],self.raid)
         self.if_move([self.auto,self.raid],self.raid)
         self.wait_end(self.result,3,100) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
@@ -356,18 +373,22 @@ class BattleFlow(Read_img):
     def hell_check(self):
         self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
         if self.hell.judge_for_hell:
-            self.if_move_for_hell([self.hell,self.claim_loot,self.reload,self.event_url],self.reload,[2,3,3])
+            self.if_move_for_hell([self.hell,self.claim_loot,self.reload,self.event_url],self.event_url)
         else:
             pass
 
     """hellをスキップできるかをチェックする"""
     @property
     def hell_check_halo(self):
-        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
-        if self.hell.judge_for_hell:
-            pygame.mixer.init()
-            pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
-            pygame.mixer.music.play(1)
+        self.if_move_for_hell([self.reload,self.quest],self.quest)
+        if self.angel_halo.judge_for_hell:
+            self.if_move_for_hell([self.angel_halo,self.select,self.play],self.reload)
+            self.friend_phase1
+            self.if_move_for_hell(
+            [self.dummy,self.auto],self.raid)
+            self.if_move_for_hell([self.auto,self.raid],self.raid)
+            self.wait_end(self.result,3,100) #wait_till関数をつくる
+            self.if_move_for_hell([self.reload,self.quest],self.quest)
         else:
             pass
 
