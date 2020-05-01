@@ -121,7 +121,7 @@ class Image_recognition:
     def exist(self):
         return os.path.isfile(self.filename)
 
-    #[todo] クリックをブラす
+
     #[todo] 無駄なところをダミークリックする
     @property
     def click(self):
@@ -225,19 +225,15 @@ class BattleFlow(Read_img):
             print(curlist[num].filename+"clicked")
             time.sleep(duration[num])
             print("wait for "+str(duration[num])+"sec")
-            if curlist[num+1].judge:
+
+            if self.wait_end(curlist[num+1],0.5,20):
                 print(curlist[num+1].filename+"was found")
                 pass
-            elif not curlist[num+1].judge:
-                time.sleep(5)
-                print(curlist[num+1].filename+"was not there. wait for 5 sec")
-                if curlist[num+1].judge:
-                    print(curlist[num+1].filename+"was found")
-                    pass
-                else: #リロード、ブックマーク
-                    print("nothing was found. try again.")
-                    self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
-                    return self.if_move(curlist,url,duration,n-1)
+            else:
+                #リロード、ブックマーク
+                print("nothing was found. try again.")
+                self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
+                return self.if_move(curlist,url,duration,n-1)
             #except:
                 #self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
                 #return self.if_move(self,curlist,url,duration,n-1)
@@ -273,15 +269,17 @@ class BattleFlow(Read_img):
                 #return self.if_move(self,curlist,url,duration,n-1)
 
     """画像が出るまで待機するメソッド"""
-    def wait_end(self,fileobj,sec):
+    def wait_end(self,fileobj,sec,max):
         self.counter=0
-        print("wait till this battle ends")
+        print("wait till the end")
         while True:
             self.counter+=1
             if fileobj.judge:
-                print("battle ends")
+                print("end")
+                return True
                 break
-            elif self.counter>100:
+            elif self.counter>max:
+                return False
                 break
             else:
                 time.sleep(sec)
@@ -359,26 +357,26 @@ class BattleFlow(Read_img):
     @property
     #Items with ok
     def attack_phase4(self):
-        self.wait_end(self.ok,1)
+        self.wait_end(self.ok,1,10)
         self.if_move(
         [self.ok,self.quest],self.raid,[0],3)
         while True:
-            self.wait_end(self.auto,0.1)
+            self.wait_end(self.auto,0.1,100)
             self.if_move([self.auto,self.raid],self.raid,[3],3)
             if self.raid.judge:
                 break
-        self.wait_end(self.result,3) #wait_till関数をつくる
+        self.wait_end(self.result,3,100) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[4],3)
 
     @property
     #Items
     def attack_phase5(self):
         while True:
-            self.wait_end(self.auto,0.1)
+            self.wait_end(self.auto,0.1,100)
             self.if_move([self.auto,self.raid],self.raid,[3],3)
             if self.raid.judge:
                 break
-        self.wait_end(self.result,3) #wait_till関数をつくる
+        self.wait_end(self.result,3,100) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[4],3)
 
     """hellをスキップできるかをチェックする"""
