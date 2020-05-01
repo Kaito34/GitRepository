@@ -85,6 +85,14 @@ class Image_recognition:
         else:
             return False
 
+    """認証用の判定メソッド"""
+    def injudge(self,box):
+        self.box = box
+        if pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=self.box):
+            return True
+        else:
+            return False
+
     @property
     def pos(self):
         # openCVを用いて範囲内に画像があるか調べる
@@ -127,12 +135,14 @@ class Image_recognition:
             print("pass the click action")
             pass
         else:
-            time.sleep(random.uniform(0,0.2))
-            self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=regionbox)
-            self.height, self.width = self.size
-            self.pos_x_ran = random.uniform(self.pos_x-self.width/2+5,self.pos_x+self.width/2-5)
-            self.pos_y_ran = random.uniform(self.pos_y-self.height/2+5,self.pos_y+self.height/2-5)
-            pg.click(self.pos_x_ran,self.pos_y_ran)
+            try:
+                self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=regionbox)
+                self.height, self.width = self.size
+                self.pos_x_ran = random.uniform(self.pos_x-self.width/2+5,self.pos_x+self.width/2-5)
+                self.pos_y_ran = random.uniform(self.pos_y-self.height/2+5,self.pos_y+self.height/2-5)
+                pg.click(self.pos_x_ran,self.pos_y_ran)
+            except:
+                print(self.filename + "not be found")
 
     @property
     def click_for_hell(self):
@@ -156,7 +166,7 @@ class Where:
 [todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
 class Read_img:
     def __init__(self,info):
-        self.l = [[] for i in range(25)]
+        self.l = [[] for i in range(29)]
         self.l[0] = self.ok = Image_recognition("ok.png")
         self.l[1] = self.reload = Image_recognition("reload2.png")
         self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
@@ -184,7 +194,11 @@ class Read_img:
         self.l[22] = self.summon_friend = Image_recognition(info['summon_friend'])
         self.l[23] = self.summon_battle = Image_recognition(info["summon_battle"])
 
-        self.l[24] = self.auto = Image_recognition("auto.png")
+        self.l[24] = self.play = Image_recognition("play.png")
+        self.l[25] = self.select = Image_recognition("select.png")
+        self.l[26] = self.angel_halo = Image_recognition("angel_halo.png")
+        self.l[27] = self.auto = Image_recognition("auto.png")
+        self.l[28] = self.friend_box = Image_recognition("friend_box.png")
 
         self.dummy = Image_recognition('dummy')
         self.prepare()
@@ -204,7 +218,7 @@ class Read_img:
 class BattleFlow(Read_img):
 
     """固まった時の対処"""
-    def if_move(self,curlist,url,duration=[0],n=3):
+    def if_move(self,curlist,url,duration=[random.uniform(0,0.5)]*5,n=3):
         """
         curlist: 実行したいインスタンスを順に格納したリスト。
                  最後は遷移が成功したかチェックするためのurlを格納。
@@ -229,7 +243,7 @@ class BattleFlow(Read_img):
                 pass
             else:
                 #リロード、ブックマーク
-                print("nothing was found. try again.")
+                print(curlist[num].filename+" was not found. reload.")
                 self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
                 return self.if_move(curlist,url,duration,n-1)
             #except:
@@ -244,7 +258,8 @@ class BattleFlow(Read_img):
 
         for num in range(len(curlist)-1):
             #try:
-            curlist[num].click
+
+            curlist[num].click_for_hell
             print(curlist[num].filename+"clicked")
             time.sleep(duration[num])
             print("wait for "+str(duration[num])+"sec")
@@ -297,25 +312,77 @@ class BattleFlow(Read_img):
     @property
     def friend_phase(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.raid_multi],self.quest_supporter)
+        self.if_move([self.summon_friend,self.quest_supporter],self.quest_supporter)
         self.verify
-        self.if_move(self.ok,self.raid_multi],self.quest_supporter)
+        if self.ok.judge:
+            self.if_move([self.dummy,self.ok,self.raid_multi],self.quest_supporter)
+        else:
+            self.if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter)
+
 
     @property
     #for solo with ok button
     def friend_phase0(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.quest],self.quest_supporter)
+        self.if_move([self.summon_friend,self.quest_supporter],self.quest_supporter)
         self.verify
-        self.if_move(self.ok,self.quest],self.quest_supporter)
+        self.if_move([self.ok,self.quest],self.quest_supporter)
 
-    @property
+    def for_v_judge(self,instance,boxname):
+
+            if all([instance.injudge(bx) for bx in boxname]):
+                return True
+                pass
+            else:
+                print("[caution!] verification")
+                return False
+                pygame.mixer.music.play(1)
+                sys.exit()
+
     #for solo without ok button
-    def friend_phase1(self):
-        #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.raid],self.quest_supporter)
-        self.verify
-        self.if_move(self.ok,self.raid],self.quest_supporter)
+    def friend_phase1(self,nexturl,n=2):
+        self.boxes =  [(370,560,200,150),
+                     (370,700,200,150),
+                     (370,850,200,150),
+                     (370,1000,200,150),
+                     (370,1150,200,150)]
+        pygame.mixer.init()
+        pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
+
+
+        print("n"+str(n)+"回目")
+        if n == 0:
+            sys.exit()
+
+        #5パート判定
+        self.for_v_judge(self.friend_box,self.boxes)
+
+        self.summon_friend.click
+        print(self.summon_friend.filename+"clicked")
+        time.sleep(0.2)
+
+        if self.wait_end(self.ok,0.5,20):
+            print(self.ok.filename+" was found")
+            self.ok.click
+            print(self.ok.filename+"clicked")
+            if self.wait_end(nexturl,0.5,20):
+                pass
+        else:
+            print("ok was not found. search for verification")
+            if self.verify1.judge:
+                print(self.verify1.pos)
+                pygame.mixer.music.play(1)
+                print("verify1 shows up")
+                sys.exit()
+            elif self.verify2.judge:
+                print(self.verify1.pos)
+                pygame.mixer.music.play(1)
+                print("verify2 shows up")
+                sys.exit()
+            else:
+                #リロード、ブックマーク
+                print(curlist[num].filename+" was not found. reload.")
+                return self.if_move([self.reload,self.quest_supporter],self.quest_supporter,n-1)
 
 
     """バトル開始から
@@ -356,17 +423,27 @@ class BattleFlow(Read_img):
         self.if_move(
         [self.ok,self.quest],self.raid)
         self.if_move([self.auto,self.raid],self.raid)
-        self.wait_end(self.result,3,100) #wait_till関数をつくる
+        self.wait_end(self.result,1,300) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
 
     @property
     #Items
     def attack_phase5(self):
         self.if_move(
-        [self.dummy,self.auto],self.raid)
+        [self.dummy,self.auto],self.raid,[0])
         self.if_move([self.auto,self.raid],self.raid)
-        self.wait_end(self.result,3,100) #wait_till関数をつくる
+        self.wait_end(self.ok,3,100) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
+
+    """ リロ殴り
+    def attack_phase5(self):
+    """
+    """ アビ召喚石指定
+    def attack_phase6(self):
+    """
+    """ アビ召喚石指定体力計測オート
+    def attack_phase7(self):
+    """
 
     """hellをスキップできるかをチェックする"""
     @property
@@ -378,19 +455,32 @@ class BattleFlow(Read_img):
             pass
 
     """hellをスキップできるかをチェックする"""
+    #[todo]wait_end とdummyの関係性
     @property
     def hell_check_halo(self):
-        self.if_move_for_hell([self.reload,self.quest],self.quest)
+        self.if_move_for_hell([self.reload,self.select],self.quest,[1])
+
         if self.angel_halo.judge_for_hell:
-            self.if_move_for_hell([self.angel_halo,self.select,self.play],self.reload)
-            self.friend_phase1
-            self.if_move_for_hell(
-            [self.dummy,self.auto],self.raid)
+            self.wait_end_for_hell(self.select,1,10)
+            self.if_move_for_hell([self.select,self.play],self.quest)
+            self.if_move_for_hell([self.play,self.quest_supporter],self.quest_supporter)
+
+            self.if_move_for_hell([self.summon_friend,self.quest_supporter],self.quest_supporter)
+            self.verify_for_hell
+            self.if_move_for_hell([self.ok,self.raid],self.quest_supporter)
+
+            self.if_move_for_hell([self.dummy,self.auto],self.raid,[0])
             self.if_move_for_hell([self.auto,self.raid],self.raid)
-            self.wait_end(self.result,3,100) #wait_till関数をつくる
+            self.wait_end_for_hell(self.result,3,100)
             self.if_move_for_hell([self.reload,self.quest],self.quest)
         else:
             pass
+
+    @property
+    def test(self):
+        self.wait_end_for_hell(self.result,3,100) #wait_till関数をつくる
+        self.if_move_for_hell([self.reload,self.quest],self.quest)
+
 
     @property
     def verify(self):
@@ -398,19 +488,51 @@ class BattleFlow(Read_img):
         pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
         if self.verify1.judge:
             pygame.mixer.music.play(1)
+            print("verify1 shows up")
             sys.exit()
         elif self.verify2.judge:
             pygame.mixer.music.play(1)
+            print("verify2 shows up")
             sys.exit()
         elif not self.summon_row.judge:
-            pygame.mixer.music.play(1)
-            sys.exit()
+            if not self.ok.judge:
+                pygame.mixer.music.play(1)
+                print("verify1 shows up")
+                sys.exit()
+            else:
+                print("verify cleared")
         else:
+            print("no verification for phase 1")
+            pass
+
+    @property
+    def verify_for_hell(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
+        if self.verify1.judge_for_hell:
+            pygame.mixer.music.play(1)
+            print("verify1 shows up")
+            sys.exit()
+        elif self.verify2.judge_for_hell:
+            pygame.mixer.music.play(1)
+            print("verify2 shows up")
+            sys.exit()
+        elif not self.summon_row.judge_for_hell:
+            if not self.ok.judge_for_hell:
+                pygame.mixer.music.play(1)
+                print("verify1 shows up")
+                sys.exit()
+            else:
+                print("verify cleared")
+        else:
+            print("verify cleared")
             pass
 
 #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
 #[todo]AP回復のフロー
 #[todo]時間待機指定をwait_endで置き換え
+#[todo]クリックのダミー化
+
 
 #global
 info = {
@@ -422,7 +544,7 @@ info = {
 B= BattleFlow(info)
 
 def test(num):
-    for i in range(num):
+    for i in range(1,num+1):
         print(str(i)+"回目のバトルです")
 
         #ツール対策
@@ -435,16 +557,18 @@ def test(num):
         print("attack_phase fin")
 
 
-        """
-        if i%random.uniform(1,10) == 0:
+
+        """if i%random.uniform(1,10) == 0:
             B.hell_check
-        elif i%10 == 0:
-            B.hell_check
+        el"""
+        if i%10 == 0:
+            B.hell_check_halo
         else:
             pass
-        """
 
-        time.sleep(random.uniform(0,5))
+        ts = random.uniform(0,5)
+        print("cool time for "+str(ts)+" sec")
+        time.sleep(ts)
 
         """
         #理想
@@ -460,8 +584,11 @@ result_multi_win.pngwas not there. wait for 5 sec
 """
 
 if __name__ == "__main__":
+    B.friend_phase1(B.raid)
+else:
+
     try:
-        test(10)
+        test(70)
     except:
         pygame.mixer.init()
         pygame.mixer.music.load("Vikala.mp3")
