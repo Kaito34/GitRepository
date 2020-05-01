@@ -15,7 +15,6 @@ pg.PAUSE = 0.02
 指定画像の検索
 Y→ボタンをクリック
 N→段階的に画像検証していく
-
 様々な行動パターンがある中で一つに関数をまとめて使いまわすのは良くない
 →それぞれの行動パターンに関してクラスを作成する
 """""""""""""""""""""""""""""""""
@@ -41,7 +40,6 @@ Image_recognition
 
 """
 画像の読み込み、クリックを実行するクラス
-
 [TODO]
 スクリーンショットを撮った後、機械学習を用いて画像認識する
 初回起動の位置合わせ後は座標を記録して所要時間削減する
@@ -206,7 +204,7 @@ class Read_img:
 class BattleFlow(Read_img):
 
     """固まった時の対処"""
-    def if_move(self,curlist,url,duration,n):
+    def if_move(self,curlist,url,duration=[0],n=3):
         """
         curlist: 実行したいインスタンスを順に格納したリスト。
                  最後は遷移が成功したかチェックするためのurlを格納。
@@ -238,8 +236,8 @@ class BattleFlow(Read_img):
                 #self.if_move([self.reload,self.bookmark,url],url,[3,4],n-1)
                 #return self.if_move(self,curlist,url,duration,n-1)
 
-    """固まった時の対処 for hell"""
-    def if_move_for_hell(self,curlist,url,duration,n):
+    """固まった時の対処 for hell(judge_for_hellみたいに後ろにつけるだけ)"""
+    def if_move_for_hell(self,curlist,url,duration=[0],n=3):
 
         print("n"+str(n)+"回目")
         if n == 0:
@@ -250,7 +248,7 @@ class BattleFlow(Read_img):
             curlist[num].click_for_hell
             print(curlist[num].filename+"clicked")
             time.sleep(duration[num])
-            print("wait for "+str(duration[num])+"sec")
+
             if curlist[num+1].judge_for_hell:
                 print(curlist[num+1].filename+"was found")
                 pass
@@ -289,34 +287,19 @@ class BattleFlow(Read_img):
     @property
     def friend_phase(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok],self.quest_supporter,[0.5],3)
-        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        self.if_move([self.ok,self.raid_multi],self.quest_supporter,[1],3)
+        self.if_move([self.summon_friend,self.ok,self.raid_multi],self.quest_supporter,[0,0])
 
     @property
-    #for solo
-    def friend_phase1(self):
+    #for solo with ok button
+    def friend_phase0(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok],self.quest_supporter,[0.5],3)
-        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        self.if_move([self.ok,self.quest],self.quest_supporter,[1],3)
+        self.if_move([self.summon_friend,self.ok,self.quest],self.quest_supporter,[0,0])
 
     @property
     #for solo without ok button
     def friend_phase1(self):
         #フレンド石選択→ok
-        self.if_move([self.summon_friend,self.ok],self.quest_supporter,[0.5],3)
-        if pg.locateCenterOnScreen('verify1.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        elif pg.locateCenterOnScreen('verify2.png',grayscale=True,confidence=0.7,region=regionbox):
-            sys.exit()
-        self.if_move([self.ok,self.raid],self.quest_supporter,[1],3)
+        self.if_move([self.summon_friend,self.ok,self.raid],self.quest_supporter,[0,0])
 
 
 
@@ -331,67 +314,56 @@ class BattleFlow(Read_img):
     @property
     def attack_phase1(self):
         self.if_move(
-        [self.dummy,self.attack],self.raid_multi,[7],3)
-        self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack,self.semi],self.raid_multi,[0.5,0.5,0.5,3],3)
-        self.if_move([self.reload,self.bookmark],self.result_multi,[3],3)
-        self.if_move([self.bookmark,self.summon_friend],self.result_multi,[4],3)
+        [self.dummy,self.attack],self.raid_multi,[5])
+        self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack,self.semi],self.raid_multi,[0.5,0.5,0.5,0])
+        self.if_move([self.reload,self.bookmark],self.result_multi,[3])
+        self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
     @property
     #AT用
     def attack_phase2(self):
         self.if_move(
-        [self.dummy,self.attack],self.raid_multi,[7],3)
-        self.if_move([self.attack,self.semi],self.raid_multi,[3],3)
-        self.if_move([self.reload,self.bookmark],self.result_multi,[3],3)
-        self.if_move([self.bookmark,self.summon_friend],self.result_multi,[4],3)
+        [self.dummy,self.attack],self.raid_multi,[5])
+        self.if_move([self.attack,self.semi],self.raid_multi)
+        self.if_move([self.reload,self.bookmark],self.result_multi)
+        self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
     @property
-    #Halo
+    #Extreme
     def attack_phase3(self):
-        self.if_move(
-        [self.dummy,self.attack],self.raid,[7],3)
-        self.if_move([self.attack,self.semi],self.raid,[3],3)
-        time.sleep(random.uniform(30,50)) #wait_till関数をつくる
-        self.if_move([self.bookmark,self.summon_friend],self.result,[4],3)
+        self.if_move([self.attack,self.semi],self.raid)
+        self.wait_end(self.result,3,200) #wait_till関数をつくる
+        self.if_move([self.bookmark,self.summon_friend],self.result)
 
     @property
     #Items with ok
     def attack_phase4(self):
-        self.wait_end(self.ok,1,10)
         self.if_move(
-        [self.ok,self.quest],self.raid,[0],3)
-        while True:
-            self.wait_end(self.auto,0.1,100)
-            self.if_move([self.auto,self.raid],self.raid,[3],3)
-            if self.raid.judge:
-                break
+        [self.ok,self.quest],self.raid)
+        self.if_move([self.auto,self.raid],self.raid)
         self.wait_end(self.result,3,100) #wait_till関数をつくる
-        self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[4],3)
+        self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
 
     @property
     #Items
     def attack_phase5(self):
-        while True:
-            self.wait_end(self.auto,0.1,100)
-            self.if_move([self.auto,self.raid],self.raid,[3],3)
-            if self.raid.judge:
-                break
+        self.if_move([self.auto,self.raid],self.raid)
         self.wait_end(self.result,3,100) #wait_till関数をつくる
-        self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[4],3)
+        self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
 
     """hellをスキップできるかをチェックする"""
     @property
     def hell_check(self):
-        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5],3)
+        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
         if self.hell.judge_for_hell:
-            self.if_move_for_hell([self.hell,self.claim_loot,self.reload,self.event_url],self.reload,[2,3,3],3)
+            self.if_move_for_hell([self.hell,self.claim_loot,self.reload,self.event_url],self.reload,[2,3,3])
         else:
             pass
 
     """hellをスキップできるかをチェックする"""
     @property
     def hell_check_halo(self):
-        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5],3)
+        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
         if self.hell.judge_for_hell:
             pygame.mixer.init()
             pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
