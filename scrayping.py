@@ -8,15 +8,26 @@ import pyautogui as pg
 import time
 import random
 import json
+import pygame.mixer
+import os
+
+"""画像が収納されているパスの指定"""
+os.chdir(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\images")
+
 
 
 '''スクレイピングをするクラス'''
 class scraping:
-    def __init__(self,battlename)
-        url_dict =
-        {
+    def __init__(self,battlename):
+        url_dict ={
             "アバターhl" : 'https://search.yahoo.co.jp/realtime/search?ei=UTF-8&fr=rts_top&aq=0&oq=%E3%82%A2%E3%83%90%E3%82%BF%E3%83%BC&at=s&ts=41854&p=%E3%82%A2%E3%83%90%E3%82%BF%E3%83%BC+lv120+%E5%8F%82%E6%88%A6id&meta=vc%3D',
-            "セレストhl": "https://search.yahoo.co.jp/realtime/search?ei=UTF-8&fr=rts_top&aq=1&oq=%E3%81%9B%E3%82%8C&at=s&ts=53296&p=%E3%82%BB%E3%83%AC%E3%82%B9%E3%83%88+%E3%83%9E%E3%82%B0%E3%83%8A+lv100+%E5%8F%82%E6%88%A6id&meta=vc%3D"
+            "セレストhl": "https://search.yahoo.co.jp/realtime/search?ei=UTF-8&fr=rts_top&aq=1&oq=%E3%81%9B%E3%82%8C&at=s&ts=53296&p=%E3%82%BB%E3%83%AC%E3%82%B9%E3%83%88+%E3%83%9E%E3%82%B0%E3%83%8A+lv100+%E5%8F%82%E6%88%A6id&meta=vc%3D",
+            "シヴァhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%B7%E3%83%B4%E3%82%A1+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "ルシファーn" : "https://search.yahoo.co.jp/realtime/search?p=%E3%83%AB%E3%82%B7%E3%83%95%E3%82%A1%E3%83%BC+%E5%8F%82%E6%88%A6id+lv150&ei=UTF-8&fr=rts_top",
+            "グランデ" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%87+lv100+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "リンドヴルム" : "https://search.yahoo.co.jp/realtime/search?p=%E3%83%AA%E3%83%B3%E3%83%89%E3%83%B4%E3%83%AB%E3%83%A0+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "オリヴィエhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%AA%E3%83%AA%E3%83%B4%E3%82%A3%E3%82%A8+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "アヌビスhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%A2%E3%83%8C%E3%83%93%E3%82%B9+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top"
         }
 
         self.target_url=url_dict[battlename]
@@ -31,47 +42,42 @@ class scraping:
 
     '''スクレイピングでマルチidを取得、コピー。'''
     def get_id(self):
-        #リンクの取得
-        #Requestsを使って、webから取得
-        r = requests.get(target_url)
+        self.ids_b = [0 for i in range(5)]
+        while True:
+            #リンクの取得
+            #Requestsを使って、webから取得
+            r = requests.get(self.target_url)
 
-        #要素を抽出
-        soup = BeautifulSoup(r.text, 'lxml')
+            #要素を抽出
+            soup = BeautifulSoup(r.text, 'lxml')
 
-        elem = soup.find_all('h2')[1].contents[0][-10:-2]
-        elem2 = soup.find_all('h2')[1].contents[0]
-        print(elem)
-        print(elem2)
+            self.ids = []
+            for i in range(5):
+                elem = soup.find_all('h2')[i].contents[0]
+                regex = re.compile(r"(\w{8})")
+                mo = regex.search(elem)
+                try:
+                    self.id = mo.group(0)
+                    self.ids.append(self.id)
+                except:
+                    pass
 
-        #要素を抽出\n",
-        soup = BeautifulSoup(r.text, 'lxml')
 
+            #前回取得と被っていないものを取得、クリップボードへ
+            for j in range(len(self.ids_b )):
+                for i in range(len(self.ids)):
+                        if self.ids[i] != self.ids_b [j]:
+                            self.id = self.ids[i]
 
-        ids = []
-        for i in range(5):
-            elem = soup.find_all('h2')[i].contents[0]
-            regex = re.compile(r"(w{8})")
-            mo = regex.search(elem)
-            try:
-                id = mo.group(0)
-                ids.append(id)
-            except:
-                pass
-                print(id)
+            print(self.id)
+            pyperclip.copy(self.id)
+            time.sleep(10)
 
-        #前回取得と被っていないものを取得、クリップボードへ
-        for j in range(len(ids_b)):
-            for i in range(len(ids)):
-                    if ids[i] != ids_b[j]:
-                        id = ids[i]
-
-        pyperclip.copy(id)
-
-        return id
+            return self.id
 
 
     '''idを入力する(BattleFlowクラスを使える)'''
-    def enter_id(self)
+    def enter_id(self):
         id = self.get_id(battlename)
         pyperclip.copy()
         #bookmark click
@@ -80,6 +86,9 @@ class scraping:
         #paste
         #join a room
 
-while True:
-    S = scraping("セレストhl")
+for i in range(100):
+    S = scraping("アヌビスhl")
     S.get_id()
+pygame.mixer.init()
+pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
+pygame.mixer.music.play(1)
