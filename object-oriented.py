@@ -7,6 +7,8 @@ import random
 import time
 import pygame.mixer
 import cv2
+import json
+import requests
 
 pg.PAUSE = 0.02
 
@@ -74,6 +76,13 @@ class Image_recognition:
     @property
     def strict_judge(self):
         if pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.9,region=regionbox):
+            return True
+        else:
+            return False
+
+    @property
+    def strict_judge_for_hell(self):
+        if pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.9,region=regionbox_hell):
             return True
         else:
             return False
@@ -177,7 +186,7 @@ class Where:
 [todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
 class Read_img:
     def __init__(self,info):
-        self.l = [[] for i in range(29)]
+        self.l = [[] for i in range(30)]
         self.l[0] = self.ok = Image_recognition("ok.png")
         self.l[1] = self.reload = Image_recognition("reload2.png")
         self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
@@ -210,6 +219,8 @@ class Read_img:
         self.l[26] = self.angel_halo = Image_recognition("angel_halo.png")
         self.l[27] = self.auto = Image_recognition("auto.png")
         self.l[28] = self.friend_box = Image_recognition("friend_box.png")
+        self.l[29] = self.hell = Image_recognition(info["hell"])
+
 
         self.dummy = Image_recognition('dummy')
         self.prepare()
@@ -352,6 +363,7 @@ class BattleFlow(Read_img):
         return True
 
     #for solo without ok button
+    #引数はバトルのURL
     def friend_phase1(self,nexturl,side="right",n=2):
         if side=="right":
             self.boxes =  [(370,560,200,150),(370,700,200,150),(370,850,200,150),
@@ -451,9 +463,9 @@ class BattleFlow(Read_img):
     @property
     #AT用
     def attack_phase2(self):
-        self.if_move([self.dummy,self.attack],self.raid_multi,[5])
-        self.if_move([self.attack,self.summon_fin],self.raid_multi)
-        self.if_move([self.reload,self.ok],self.result_multi)
+        self.if_move([self.dummy,self.attack],self.raid_multi)
+        self.if_move([self.attack,self.summon_choice],self.raid_multi)
+        self.if_move([self.reload,self.ok],self.result_multi,[1])
         self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
     @property
@@ -467,19 +479,32 @@ class BattleFlow(Read_img):
     #Items with ok
     def attack_phase4(self):
         self.if_move(
-        [self.ok,self.quest],self.raid)
+        [self.dummy,self.ok],self.raid,[2])
+        self.if_move(
+        [self.ok,self.raid],self.raid,[0])
+        self.if_move(
+        [self.dummy,self.auto],self.raid,[0])
         self.if_move([self.auto,self.raid],self.raid)
         self.wait_end(self.result,1,300) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
 
     @property
-    #Items
+    #Items halo extra
     def attack_phase5(self):
         self.if_move(
         [self.dummy,self.auto],self.raid,[0])
         self.if_move([self.auto,self.raid],self.raid)
         self.wait_end(self.ok,3,100) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[1])
+
+    @property
+    #CP用
+    def attack_phase6(self):
+        self.if_move([self.dummy,self.attack],self.raid)
+        self.if_move([self.attack,self.summon_choice],self.raid)
+        self.if_move([self.reload,self.ok],self.result,[1])
+        self.if_move([self.bookmark,self.summon_friend],self.result)
+
 
     """ リロ殴り
     def attack_phase5(self):
@@ -494,18 +519,15 @@ class BattleFlow(Read_img):
     """hellをスキップできるかをチェックする"""
     @property
     def hell_check(self):
-        self.if_move_for_hell([self.reload,self.hell],self.event_url,[5])
+        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
         if self.hell.judge_for_hell:
-            self.if_move_for_hell([self.hell,self.claim_loot],self.event_url)
+            self.if_move_for_hell([self.select,self.claim_loot],self.event_url)
             self.if_move_for_hell([self.claim_loot,self.ok],self.event_url)
-            self.friend_phase1(self.raid_multi,"left")
-
-            self.if_move_for_hell([self.dummy,self.auto],self.raid_multi,[0])
-            self.if_move_for_hell([self.auto,self.raid_multi],self.raid_multi)
-            self.wait_end_for_hell(self.result_multi,3,100)
             self.if_move_for_hell([self.reload,self.event_url],self.event_url)
         else:
             pass
+
+
 
     """hellをスキップできるかをチェックする"""
     #[todo]wait_end とdummyの関係性
@@ -513,7 +535,7 @@ class BattleFlow(Read_img):
     def hell_check_halo(self):
         self.if_move_for_hell([self.reload,self.select],self.quest,[1])
 
-        if self.angel_halo.judge_for_hell:
+        if self.angel_halo.strict_judge_for_hell:
             self.if_move_for_hell([self.select,self.play],self.raid,[1])
             self.if_move_for_hell([self.play,self.quest_supporter],self.quest_supporter,[1])
 
@@ -521,9 +543,15 @@ class BattleFlow(Read_img):
 
             self.if_move_for_hell([self.dummy,self.auto],self.raid,[0])
             self.if_move_for_hell([self.auto,self.raid],self.raid)
+            if not self.wait_end_for_hell(self.full,0.5,20):
+                self.if_move_for_hell([self.reload,self.raid],self.raid,[0])
+                self.if_move_for_hell([self.dummy,self.auto],self.raid,[0])
+                self.if_move_for_hell([self.auto,self.raid],self.raid)
+
             self.wait_end_for_hell(self.result,3,100)
             self.if_move_for_hell([self.reload,self.quest],self.quest)
         else:
+            print("hell was not shown.")
             pass
 
     @property
@@ -531,6 +559,14 @@ class BattleFlow(Read_img):
         self.wait_end_for_hell(self.result,3,100) #wait_till関数をつくる
         self.if_move_for_hell([self.reload,self.quest],self.quest)
 
+
+#slackに送信
+def send_slack(text):
+    #DO
+    WEB_HOOK_URL = "https://hooks.slack.com/services/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"
+    requests.post(WEB_HOOK_URL, data = json.dumps({
+                    'text': text
+                    }))
 
 #[todo]infoの辞書にリストを渡すと気軽に追加できるようなクラス作成
 #[todo]AP回復のフロー
@@ -540,9 +576,10 @@ class BattleFlow(Read_img):
 
 #global
 info = {
-'event_url':'event_url.png' ,
+'event_url':'quest_extra.png' ,
 'summon_friend':'summon_friend.png' ,
 'summon_battle':'rose.png',
+"hell" : "skies_ones_more.png"
 }
 
 B= BattleFlow(info)
@@ -552,25 +589,20 @@ def test(num):
         print(str(i)+"回目のバトルです")
 
         #フレンド選択画面におけるフレンド召喚石の設定
-        B.friend_phase1(B.raid_multi)
+        B.friend_phase1(B.raid)
         print("friend_phase1 fin")
-        B.attack_phase1
+        B.attack_phase5
         print("attack_phase fin")
 
 
-
-        """if i%random.uniform(1,10) == 0:
-            B.hell_check
-        el"""
-
-
+        """
         if i%10 == 0:
-            #B.hell_check
-            pass
-        else:
-            pass
+            B.hell_check_halo
+        """
+        B.hell_check
 
-        ts = random.uniform(0,5)
+
+        ts = random.uniform(1,0)
         print("cool time for "+str(ts)+" sec")
         time.sleep(ts)
 
@@ -591,7 +623,7 @@ if __name__ == "__main__":
     start = time.perf_counter()
 
     try:
-        a=int(random.uniform(40,45))
+        a=int(random.uniform(20,23))
         test(a)
     except:
         pygame.mixer.init()
