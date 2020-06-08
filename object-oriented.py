@@ -147,6 +147,14 @@ class Image_recognition:
         if self.filename =='dummy':
             print("pass the click action")
             pass
+        elif self.filename == "auto":
+            print("auto button click phase")
+            self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=regionbox)
+            self.height, self.width = self.size
+            self.pos_x_ran = random.uniform(self.pos_x-self.width/2+5,self.pos_x+self.width/2-5)
+            self.pos_y_ran = random.uniform(self.pos_y-self.height/2+5,self.pos_y+self.height/2-5)
+            pg.click(self.pos_x_ran,self.pos_y_ran)
+            pass
         else:
             try:
                 self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=regionbox)
@@ -256,6 +264,9 @@ class Read_img:
         self.l[57] = self.retreat = Image_recognition("retreat.png")
         self.l[58] = self.retreat2 = Image_recognition("retreat2.png")
         self.l[59] = self.ac_dark = Image_recognition("arcarum_dark.png")
+        self.l[60] = self.play_again = Image_recognition("play_again.png")
+        self.l[61] = self.play_next = Image_recognition("play_next.png")
+        self.l[62] = self.close = Image_recognition("close.png")
 
 
         self.dummy = Image_recognition('dummy')
@@ -430,12 +441,13 @@ class BattleFlow(Read_img):
         time.sleep(0.2)
 
         if side=="right":
-            if self.wait_end(self.ok,0.5,20):
+            if self.wait_end(self.ok,0.3,7):
                 print(self.ok.filename+" was found")
-                self.ok.click
-                print(self.ok.filename+"clicked")
-                if self.wait_end(nexturl,0.5,20):
-                    pass
+                for i in range(3):
+                    self.ok.click
+                    print(self.ok.filename+"clicked")
+                    if self.wait_end(nexturl,0.5,8) is True:
+                        break
             else:
                 print("ok was not found. search for verification")
                 if self.verify1.judge:
@@ -508,11 +520,24 @@ class BattleFlow(Read_img):
         self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
     @property
+    #leave it with auto mode
+    def attack_phase_full(self):
+        if self.wait_end(self.auto,0.3,7) is True:
+            self.auto.click
+        while self.wait_end(self.full,0.3,7) is False:
+            self.reload.click
+            if self.wait_end(self.auto,0.3,7) is True:
+                self.auto.click
+        self.wait_end(self.ok,3,300) #wait_till関数をつくる
+        self.if_move([self.bookmark,self.summon_friend],self.quest_supporter,[1])
+
+    @property
     #Extreme
     def attack_phase3(self):
         self.if_move([self.attack,self.semi],self.raid)
         self.wait_end(self.result,3,200) #wait_till関数をつくる
         self.if_move([self.bookmark,self.summon_friend],self.result)
+
 
     @property
     #Items with ok
@@ -528,7 +553,7 @@ class BattleFlow(Read_img):
         self.if_move([self.bookmark,self.summon_friend],self.quest_supporter)
 
     @property
-    #Items halo extra
+    #Items halo extrac. leave it with auto mode
     def attack_phase5(self):
         self.if_move(
         [self.dummy,self.auto],self.raid,[0])
@@ -611,6 +636,24 @@ class BattleFlow(Read_img):
             print("hell was not shown.")
             pass
 
+    def simple_click(self,cur,nxt,duration=0):
+        """ボタンを確実にクリックする"""
+        self.counter = 0
+        time.sleep(duration)
+        while True:
+            if self.wait_end(nxt,0.3,2) is True:
+                print("move on to "+nxt.filename)
+                break
+            elif self.wait_end(cur,0.3,2) is True:
+                cur.click
+                print("clicked "+cur.filename)
+                self.counter+=1
+                if self.counter > 10:
+                    break
+                if self.counter > 5:
+                    self.reload_chrome.click
+                    break
+
 class Ac(BattleFlow):
     charge_judge = False
 
@@ -618,7 +661,7 @@ class Ac(BattleFlow):
     """[todo] 再帰的にする
     sr縛りに対応"""
     def arcarum(self):
-        #self.point_select()
+        self.point_select()
         self.one_stage()
         if self.wait_end(self.ok,0.3,3):
             self.ok.click
@@ -757,7 +800,60 @@ class Ac(BattleFlow):
                     self.reload_chrome.click
                     break
 
-class
+
+class yonzo(BattleFlow):
+    def ex(self):
+        for i in range(8):
+            if i != 7:
+                B.friend_phase1(B.raid_multi)
+                print("friend_phase1 fin")
+                B.attack_phase1
+                print("attack_phase fin")
+            else:
+                B.friend_phase1(B.raid_multi)
+                print("friend_phase1 fin")
+                self.if_move([self.dummy,self.attack],self.raid_multi,[5])
+                self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack],self.raid_multi,[0,0,0])
+                self.if_move([self.attack,self.summon_fin],self.raid_multi,[4])
+                self.if_move([self.reload,self.ok],self.result_multi,[3])
+                while self.wait_end(self.play_again,0.3,3) is False:
+                    if self.ok.judge:
+                        self.ok.click
+                    else:
+                        pg.click(500,500)
+                while self.wait_end(self.play_next,0.3,3) is False:
+                    if self.play_again.judge:
+                        self.play_again.click
+                    if self.close.judge:
+                        self.close.click
+                self.if_move([self.play_next,self.summon_friend],self.result_multi,[2])
+
+
+    def ex_plus(self):
+        B.friend_phase1(B.raid_multi)
+        print("friend_phase1 fin")
+        B.attack_phase_full
+        print("attack_phase fin")
+
+    def main(self):
+        self.ex()
+        self.ex_plus()
+
+    def test(self):
+        while self.wait_end(self.play_again,0.3,3) is False:
+            if self.ok.judge:
+                self.ok.click
+            else:
+                pg.click(500,500)
+        while self.wait_end(self.play_next,0.3,3) is False:
+            if self.play_again.judge:
+                self.play_again.click
+            if self.close.judge:
+                self.close.click
+        self.if_move([self.play_next,self.summon_friend],self.result_multi,[2])
+
+    def test2(self):
+        print(self.close.pos)
 
 
 #slackに送信
@@ -776,7 +872,7 @@ def send_slack(text):
 
 #global 'summon_friend.png'"varuna.png"
 info = {
-'summon_friend': "varuna.png" ,
+'summon_friend': 'summon_friend.png',
 'summon_battle':'rose.png',
 'event_url':'event_url.png' ,
 "hell" : "DOSS.png"
@@ -788,11 +884,11 @@ logs = []
 
 B= BattleFlow(info)
 
-def test(num):
+def test(num,battle_genre):
     for i in range(1,num+1):
         start = time.perf_counter()
         log = [0]*4
-        log[0] = "ex"
+        log[0] = battle_genre
         log[1] = i
 
         print(str(i)+"回目のバトルです")
@@ -808,7 +904,7 @@ def test(num):
 
         #"""
         #if i%2 == 0:
-        log[2] = B.hell_check_event
+        #log[2] = B.hell_check_event
         #"""
 
         #
@@ -846,6 +942,13 @@ bookmark_win.pngclicked
 wait for 4sec
 result_multi_win.pngwas not there. wait for 5 sec
 """
+
+def Yz():
+    Y = yonzo(info)
+    #Y.attack_phase_full()
+    for i in range(3):
+        Y.main()
+
 def main():
     try:
         a=int(random.uniform(30,29))
@@ -869,4 +972,4 @@ def ac():
     pygame.mixer.music.play(1)
 
 if __name__ == "__main__":
-    ac()
+    Yz()
