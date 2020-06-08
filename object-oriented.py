@@ -4,11 +4,14 @@ import pyautogui as pg
 import os
 import sys
 import random
+import datetime
 import time
 import pygame.mixer
 import cv2
 import json
 import requests
+import pandas as pd
+
 
 pg.PAUSE = 0.02
 
@@ -150,7 +153,7 @@ class Image_recognition:
                 self.height, self.width = self.size
                 self.pos_x_ran = random.uniform(self.pos_x-self.width/2+5,self.pos_x+self.width/2-5)
                 self.pos_y_ran = random.uniform(self.pos_y-self.height/2+5,self.pos_y+self.height/2-5)
-                pg.moveTo(self.pos_x_ran,self.pos_y_ran,random.uniform(0,0.1))
+                pg.moveTo(self.pos_x_ran,self.pos_y_ran,random.uniform(0.2,0.1))
                 pg.click(self.pos_x_ran,self.pos_y_ran)
             except:
                 print(self.filename + "not be found")
@@ -166,6 +169,7 @@ class Image_recognition:
                 self.height, self.width = self.size
                 self.pos_x_ran = random.uniform(self.pos_x-self.width/2+5,self.pos_x+self.width/2-5)
                 self.pos_y_ran = random.uniform(self.pos_y-self.height/2+5,self.pos_y+self.height/2-5)
+                pg.moveTo(self.pos_x_ran,self.pos_y_ran,random.uniform(0.2,0.1))
                 pg.click(self.pos_x_ran,self.pos_y_ran)
             except:
                 print(self.filename + "not be found")
@@ -186,7 +190,7 @@ class Where:
 [todo] 何度も追加するのが面倒なので、手っ取り早く追加できるようにしたい"""
 class Read_img:
     def __init__(self,info):
-        self.l = [[] for i in range(30)]
+        self.l = [[] for i in range(100)]
         self.l[0] = self.ok = Image_recognition("ok.png")
         self.l[1] = self.reload = Image_recognition("reload2.png")
         self.l[2] = self.bookmark = Image_recognition("bookmark_win.png")
@@ -221,6 +225,38 @@ class Read_img:
         self.l[28] = self.friend_box = Image_recognition("friend_box.png")
         self.l[29] = self.hell = Image_recognition(info["hell"])
 
+        self.l[30] = self.ac_treasure = Image_recognition("arcarum_treasure.png")
+        self.l[31] = self.ac_finechest = Image_recognition("arcarum_finechest.png")
+        self.l[32] = self.ac_battle = Image_recognition("arcarum_battle.png")
+        self.l[33] = self.ac_nextstage = Image_recognition("arcarum_nextstage.png")
+        self.l[34] = self.ac_bluecircle = Image_recognition("arcarum_bluecircle.png")
+        self.l[35] = self.ac_Ronly = Image_recognition("arcarum_Ronly.png")
+        self.l[36] = self.ac_move = Image_recognition("arcarum_move.png")
+        self.l[37] = self.ac_Ronlylavel = Image_recognition("arcarum_Ronlylavel.png")
+        self.l[38] = self.ac_Rparty = Image_recognition("arcarum_Rparty.png")
+        self.l[39] = self.ac_doordie = Image_recognition("arcarum_doordie.png")
+        self.l[40] = self.ac_mainchara = Image_recognition("arcarum_mainchara.png")
+        self.l[41] = self.ac_mainabli1 = Image_recognition("arcarum_mainabi1.png")
+        self.l[42] = self.ac_mainabli2 = Image_recognition("arcarum_mainabi2.png")
+        self.l[43] = self.ac_mainabli3 = Image_recognition("arcarum_mainabi3.png")
+        self.l[44] = self.ac_mainabli4 = Image_recognition("arcarum_mainabi4.png")
+        self.l[45] = self.ac_checkpoint = Image_recognition("arcarum_checkpoint.png")
+        self.l[46] = self.ac_arcarum = Image_recognition("arcarum_arcarum.png")
+        self.l[47] = self.ac_aquila = Image_recognition("arcarum_aquila.png")
+        self.l[48] = self.ac_start_expedition = Image_recognition("arcarum_start_expedition.png")
+        self.l[49] = self.ac_normal = Image_recognition("arcarum_normal.png")
+        self.l[50] = self.ac_normal1 = Image_recognition("arcarum_normal1.png")
+        self.l[51] = self.mary = Image_recognition("mary.png")
+        self.l[52] = self.ab_snowdrop = Image_recognition("ab_snowdrop.png")
+        self.l[53] = self.ac_nothing = Image_recognition("arcarum_nothing.png")
+        self.l[54] = self.ac_nocharge_attack = Image_recognition("arcarum_nocharge_attack.png")
+
+        self.l[55] = self.reload_chrome = Image_recognition("reload.png")
+        self.l[56] = self.menu = Image_recognition("menu.png")
+        self.l[57] = self.retreat = Image_recognition("retreat.png")
+        self.l[58] = self.retreat2 = Image_recognition("retreat2.png")
+        self.l[59] = self.ac_dark = Image_recognition("arcarum_dark.png")
+
 
         self.dummy = Image_recognition('dummy')
         self.prepare()
@@ -228,10 +264,11 @@ class Read_img:
     """初期設定としてファイル損失やディレクトリパス指定ミス時にエラーを出す"""
     def prepare(self):
         for i in range(len(self.l)):
-            if not self.l[i].exist:
-                print("error occured while preparing images")
-                print(self.l[i].filename+" does not exist.")
-                sys.exit()
+            if self.l[i] != []:
+                if not self.l[i].exist:
+                    print("error occured while preparing images")
+                    print(self.l[i].filename+" does not exist.")
+                    sys.exit()
 
 
 '''フローを実行するクラス
@@ -260,7 +297,7 @@ class BattleFlow(Read_img):
             time.sleep(duration[num])
             print("wait for "+str(duration[num])+"sec")
 
-            if self.wait_end(curlist[num+1],0.5,20):
+            if self.wait_end(curlist[num+1],0.4,15):
                 print(curlist[num+1].filename+"was found")
                 pass
             else:
@@ -286,7 +323,7 @@ class BattleFlow(Read_img):
             time.sleep(duration[num])
             print("wait for "+str(duration[num])+"sec")
 
-            if self.wait_end_for_hell(curlist[num+1],0.5,20):
+            if self.wait_end_for_hell(curlist[num+1],0.5,5):
                 print(curlist[num+1].filename+"was found")
                 pass
             else:
@@ -301,16 +338,13 @@ class BattleFlow(Read_img):
     """画像が出るまで待機するメソッド"""
     def wait_end(self,fileobj,sec,max):
         self.counter=0
-        print("wait till the end")
+        print("wait till the end of "+fileobj.filename)
         while True:
             self.counter+=1
             if fileobj.judge:
-                print("end")
                 return True
-                break
             elif self.counter>max:
                 return False
-                break
             else:
                 time.sleep(sec)
 
@@ -356,7 +390,7 @@ class BattleFlow(Read_img):
                 print("5 part varification succeeded")
             else:
                 print("[caution!] verification")
-                return False
+                pd.DataFrame(["5 part",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                 pygame.mixer.music.play(1)
                 sys.exit()
 
@@ -408,11 +442,13 @@ class BattleFlow(Read_img):
                     print(self.verify1.pos)
                     pygame.mixer.music.play(1)
                     print("verify1 shows up")
+                    pd.DataFrame(["verify1",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                     sys.exit()
                 elif self.verify2.judge:
                     print(self.verify1.pos)
                     pygame.mixer.music.play(1)
                     print("verify2 shows up")
+                    pd.DataFrame(["verify2",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                     sys.exit()
                 else:
                     #リロード、ブックマーク
@@ -432,11 +468,13 @@ class BattleFlow(Read_img):
                     print(self.verify1.pos_for_hell)
                     pygame.mixer.music.play(1)
                     print("verify1 shows up")
+                    pd.DataFrame(["verify1",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                     sys.exit()
                 elif self.verify2.judge_for_hell:
                     print(self.verify1.pos_for_hell)
                     pygame.mixer.music.play(1)
                     print("verify2 shows up")
+                    pd.DataFrame(["verify2",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                     sys.exit()
                 else:
                     #リロード、ブックマーク
@@ -453,19 +491,20 @@ class BattleFlow(Read_img):
     6. 指定のアビリティ、召喚石を使用して攻撃(nポチn召喚nオート)
     """
     @property
+    #カツオ召喚して奥義
     def attack_phase1(self):
         self.if_move([self.dummy,self.attack],self.raid_multi,[5])
         self.if_move([self.summon_choice,self.summon_battle,self.ok,self.attack],self.raid_multi,[0,0,0])
-        self.if_move([self.attack,self.summon_fin],self.result_multi,[4])
+        self.if_move([self.attack,self.summon_fin],self.raid_multi,[4])
         self.if_move([self.reload,self.ok],self.result_multi,[3])
-        self.if_move([self.bookmark,self.summon_friend],self.result_multi)
+        self.if_move([self.bookmark,self.summon_friend],self.raid_multi)
 
     @property
     #AT用
     def attack_phase2(self):
-        self.if_move([self.dummy,self.attack],self.raid_multi)
+        self.if_move([self.dummy,self.attack],self.raid_multi,[5])
         self.if_move([self.attack,self.summon_choice],self.raid_multi)
-        self.if_move([self.reload,self.ok],self.result_multi,[1])
+        self.if_move([self.reload,self.ok],self.result_multi,[3])
         self.if_move([self.bookmark,self.summon_friend],self.result_multi)
 
     @property
@@ -516,7 +555,9 @@ class BattleFlow(Read_img):
     def attack_phase7(self):
     """
 
-    """hellをスキップできるかをチェックする"""
+    """hellをスキップできるかをチェックする
+    hellでクエストがあるかどうかを判断
+    """
     @property
     def hell_check(self):
         self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
@@ -525,7 +566,23 @@ class BattleFlow(Read_img):
             self.if_move_for_hell([self.claim_loot,self.ok],self.event_url)
             self.if_move_for_hell([self.reload,self.event_url],self.event_url)
         else:
+            print("hell was not shown")
             pass
+
+    """hellをスキップできるかをチェックする
+    hellでクエストがあるかどうかを判断
+    """
+    @property
+    def hell_check_event(self):
+        self.if_move_for_hell([self.reload,self.event_url],self.event_url,[5])
+        if self.hell.judge_for_hell:
+            self.if_move_for_hell([self.hell,self.claim_loot],self.event_url)
+            self.if_move_for_hell([self.claim_loot,self.ok],self.event_url)
+            self.if_move_for_hell([self.reload,self.event_url],self.event_url)
+            return 1
+        else:
+            print("hell was not shown")
+            return 0
 
 
 
@@ -554,10 +611,153 @@ class BattleFlow(Read_img):
             print("hell was not shown.")
             pass
 
-    @property
-    def test(self):
-        self.wait_end_for_hell(self.result,3,100) #wait_till関数をつくる
-        self.if_move_for_hell([self.reload,self.quest],self.quest)
+class Ac(BattleFlow):
+    charge_judge = False
+
+    #あーカルム自動
+    """[todo] 再帰的にする
+    sr縛りに対応"""
+    def arcarum(self):
+        #self.point_select()
+        self.one_stage()
+        if self.wait_end(self.ok,0.3,3):
+            self.ok.click
+
+
+    def nocharge(self,stage):
+        while True:
+            if self.ac_nocharge_attack.judge:
+                self.__class__.charge_judge = True
+                self.simple_click(self.menu,self.retreat)
+                self.simple_click(self.retreat,self.retreat2)
+                self.simple_click(self.retreat2,self.reload)
+                self.simple_click(self.reload,self.reload)
+                self.point_select(stage)
+                return True
+            else:
+                return False
+
+    def one_stage(self):
+        while True:
+            print("checkpoint移動まで探索開始")
+
+            #if self.wait_end(self.ac_nothing,0.3,4):
+
+            if self.wait_end(self.ac_battle,0.3,3):
+                print("バトル開始")
+                if not self.wait_end(self.ac_Ronlylavel,0.3,3):
+                    print("R縛りではない")
+                    while self.ac_battle.judge is True:
+                        self.ac_battle.click
+                        if self.wait_end(self.ac_normal1,0.3,5):
+                            self.ac_normal1.click
+                            print(self.__class__.charge_judge)
+                            self.simple_click(self.ok,self.attack,3)
+                            if self.__class__.charge_judge is False:
+                                if self.nocharge(self.ac_aquila) is True:
+                                    pass
+                                else:
+                                    #主人公のアビ全利用のコードを描く
+                                    self.simple_click(self.ac_mainchara,self.attack)
+                                    self.simple_click(self.ac_mainabli1,self.attack)
+                                    self.simple_click(self.ac_mainabli2,self.attack)
+                                    self.simple_click(self.ac_mainabli3,self.attack)
+                                    self.simple_click(self.ac_mainabli4,self.attack)
+                                    self.simple_click(self.attack,self.attack_cancel)
+                                    self.simple_click(self.attack_cancel,self.summon_choice)
+                                    self.simple_click(self.summon_choice,self.summon_battle)
+                                    self.simple_click(self.summon_battle,self.ok)
+                                    self.simple_click(self.ok,self.attack)
+                                    self.simple_click(self.attack,self.summon_fin,3)
+                                    self.simple_click(self.reload,self.ok,3)
+                                    self.reload.click
+                            elif self.__class__.charge_judge is True:
+                                sys.exit()
+
+
+                        else:
+                            self.ok.click
+                #R縛りの時
+                if self.wait_end(self.ac_Ronlylavel,0.3,3):
+                    print("R縛り")
+                    while self.ac_battle.judge is True:
+                        self.ac_battle.click
+                        if self.wait_end(self.ac_Rparty,0.3,3):
+                            self.ac_Rparty.click
+                            if self.__class__.charge_judge is False:
+                                if self.nocharge(self.ac_aquila) is True:
+                                    pass
+                                elif self.wait_end(self.ok,0.3,3):
+                                    #主人公のアビ全利用のコードを描く
+                                    self.simple_click(self.ok,self.attack,3)
+                                    self.simple_click(self.ac_mainchara,self.attack)
+                                    self.simple_click(self.ac_mainabli1,self.attack)
+                                    self.simple_click(self.ac_mainabli2,self.attack)
+                                    self.simple_click(self.ac_mainabli3,self.attack)
+                                    self.simple_click(self.ac_mainabli4,self.attack)
+                                    self.simple_click(self.attack,self.attack_cancel)
+                                    self.simple_click(self.attack_cancel,self.summon_choice)
+                                    self.simple_click(self.summon_choice,self.summon_battle)
+                                    self.simple_click(self.summon_battle,self.ok)
+                                    self.simple_click(self.ok,self.attack)
+                                    self.simple_click(self.attack,self.summon_fin,3)
+                                    self.simple_click(self.reload,self.ok,3)
+                                    self.reload.click
+                            elif self.__class__.charge_judge is True:
+                                sys.exit()
+
+            if self.wait_end(self.ac_bluecircle,0.3,3):
+                print("未探索部分を探索")
+                self.ac_bluecircle.click
+                if self.wait_end(self.ac_move,0.3,10):
+                    self.ac_move.click
+
+            if self.wait_end(self.ac_nextstage,0.3,3) is True or self.wait_end(self.ac_checkpoint,0.3,3) is True:
+                break
+
+        while True:
+            print("ステージ遷移")
+            if self.wait_end(self.ac_bluecircle,0.3,3) is True:
+                break
+            elif self.wait_end(self.ac_battle,0.3,3) is True:
+                break
+            elif self.wait_end(self.ac_nextstage,0.3,3):
+                self.ac_nextstage.click
+                if self.wait_end(self.ok,0.3,3):
+                    self.ok.click
+
+        if self.wait_end(self.ok,0.3,3):
+            self.ok.click
+        if self.wait_end(self.ac_checkpoint,0.3,3):
+            self.ac_checkpoint.click
+            if self.wait_end(self.ac_arcarum,0.3,3):
+                self.ac_arcarum.click
+
+    def point_select(self,stage):
+        if self.wait_end(stage,0.3,10):
+            self.stage.click
+        if self.wait_end(self.ac_start_expedition,0.3,10):
+            self.ac_start_expedition.click
+
+    def simple_click(self,cur,nxt,duration=0):
+        """ボタンを確実にクリックする"""
+        self.counter = 0
+        time.sleep(duration)
+        while True:
+            if self.wait_end(nxt,0.3,2) is True:
+                print("move on to "+nxt.filename)
+                break
+            elif self.wait_end(cur,0.3,2) is True:
+                cur.click
+                print("clicked "+cur.filename)
+                self.counter+=1
+                if self.counter > 10:
+                    break
+                if self.counter > 5:
+                    self.reload_chrome.click
+                    break
+
+class
 
 
 #slackに送信
@@ -574,43 +774,71 @@ def send_slack(text):
 #[todo]クリックのダミー化
 
 
-#global
+#global 'summon_friend.png'"varuna.png"
 info = {
-'event_url':'quest_extra.png' ,
-'summon_friend':'summon_friend.png' ,
+'summon_friend': "varuna.png" ,
 'summon_battle':'rose.png',
-"hell" : "skies_ones_more.png"
+'event_url':'event_url.png' ,
+"hell" : "DOSS.png"
 }
+
+#[バトル数、ヘルの有無(1 or 0)、経過時間]
+logs = []
+
 
 B= BattleFlow(info)
 
 def test(num):
     for i in range(1,num+1):
+        start = time.perf_counter()
+        log = [0]*4
+        log[0] = "ex"
+        log[1] = i
+
         print(str(i)+"回目のバトルです")
 
         #フレンド選択画面におけるフレンド召喚石の設定
-        B.friend_phase1(B.raid)
+        B.friend_phase1(B.raid_multi)
         print("friend_phase1 fin")
-        B.attack_phase5
+        B.attack_phase1
         print("attack_phase fin")
 
 
-        """
-        if i%10 == 0:
-            B.hell_check_halo
-        """
-        B.hell_check
+        #hell関連
 
+        #"""
+        #if i%2 == 0:
+        log[2] = B.hell_check_event
+        #"""
 
-        ts = random.uniform(1,0)
+        #
+        """
+        if i == 7:
+            per = int(random.uniform(0,3))
+            print(per)
+
+        if i > 6:
+            if i%7 == per:
+                log[2] = B.hell_check_event
+                per = int(random.uniform(0,3))
+
+        """
+        ts = random.uniform(3,0)
         print("cool time for "+str(ts)+" sec")
         time.sleep(ts)
+
 
         """
         #理想
         click(varuna) #フレンド選択
         click(battlestart,info) #バトル開始～終了まで
         """
+        end = time.perf_counter()
+        log[3] = end-start
+        logs.append(log)
+
+    df = pd.DataFrame(logs,columns=["difficulty","battle num","hell","time"])
+    df.to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format(str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
 """
 #stuck over flow
 bookmark_win.pngwas found
@@ -618,12 +846,10 @@ bookmark_win.pngclicked
 wait for 4sec
 result_multi_win.pngwas not there. wait for 5 sec
 """
-
-if __name__ == "__main__":
-    start = time.perf_counter()
-
+def main():
     try:
-        a=int(random.uniform(20,23))
+        a=int(random.uniform(30,29))
+        e=int(random.uniform(46,45))
         test(a)
     except:
         pygame.mixer.init()
@@ -633,5 +859,14 @@ if __name__ == "__main__":
     pygame.mixer.init()
     pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
     pygame.mixer.music.play(1)
-    end = time.perf_counter()
-    print("経過時間は "+str(end-start))
+
+def ac():
+    A = Ac(info)
+    A.arcarum()
+
+    pygame.mixer.init()
+    pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
+    pygame.mixer.music.play(1)
+
+if __name__ == "__main__":
+    ac()
