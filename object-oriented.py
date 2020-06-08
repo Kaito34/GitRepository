@@ -431,25 +431,26 @@ class BattleFlow(Read_img):
         if side=="right":
             for i in range(3):
                 self.summon_friend.click
-                """召喚石の選択に成功"""
+                #召喚石の選択に成功
                 if self.wait_end(self.ok,0.3,7) is True:
                     print(self.ok.filename+" was found")
-                    """okボタンを押す"""
+                    #okボタンを押す
                     for i in range(5):
                         self.ok.click
                         print(self.ok.filename+" clicked")
                         if self.wait_end(nexturl,0.3,7) is True:
                             break
-                    """okボタンを押せなかった場合リロード"""
-                    for i in range(3):
-                        self.reload.click
-                        print(self.reload.filename+" clicked")
-                        if self.wait_end(self.summon_friend,0.3,10) is True:
-                            break
-                """召喚石の選択が出来ていないorツール認証"""
+                        else:
+                            #okボタンを押せなかった場合リロード
+                            for i in range(3):
+                                self.reload.click
+                                print(self.reload.filename+" clicked")
+                                if self.wait_end(self.summon_friend,0.3,10) is True:
+                                    break
+                #召喚石の選択が出来ていないorツール認証
                 else:
                     if i==1:
-                    """ツール認証確認"""
+                    #ツール認証確認
                         print("ok was not found. search for verification")
                         if self.verify1.judge:
                             print(self.verify1.pos)
@@ -464,7 +465,7 @@ class BattleFlow(Read_img):
                             pd.DataFrame(["verify2",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
                             sys.exit()
 
-                    """再クリック 3回目のみリロード"""
+                    #再クリック 3回目のみリロード
                     else:
                         if i<2:
                             break
