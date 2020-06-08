@@ -429,45 +429,58 @@ class BattleFlow(Read_img):
         self.for_v_judge(self.friend_box,self.boxes)
 
         if side=="right":
-            self.summon_friend.click
-            if not self.wait_end(self.ok,0.5,4):
+            for i in range(3):
                 self.summon_friend.click
+                """召喚石の選択に成功"""
+                if self.wait_end(self.ok,0.3,7) is True:
+                    print(self.ok.filename+" was found")
+                    """okボタンを押す"""
+                    for i in range(5):
+                        self.ok.click
+                        print(self.ok.filename+" clicked")
+                        if self.wait_end(nexturl,0.3,7) is True:
+                            break
+                    """okボタンを押せなかった場合リロード"""
+                    for i in range(3):
+                        self.reload.click
+                        print(self.reload.filename+" clicked")
+                        if self.wait_end(self.summon_friend,0.3,10) is True:
+                            break
+                """召喚石の選択が出来ていないorツール認証"""
+                else:
+                    if i==1:
+                    """ツール認証確認"""
+                        print("ok was not found. search for verification")
+                        if self.verify1.judge:
+                            print(self.verify1.pos)
+                            pygame.mixer.music.play(1)
+                            print("verify1 shows up")
+                            pd.DataFrame(["verify1",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
+                            sys.exit()
+                        elif self.verify2.judge:
+                            print(self.verify1.pos)
+                            pygame.mixer.music.play(1)
+                            print("verify2 shows up")
+                            pd.DataFrame(["verify2",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
+                            sys.exit()
+
+                    """再クリック 3回目のみリロード"""
+                    else:
+                        if i<2:
+                            break
+                        else:
+                            print("verification cleared. "+self.ok.filename+" was not found. reload.")
+                            for i in range(3):
+                                self.reload.click
+                                if self.wait_end(self.quest_supporter,0.3,3) is True:
+                                    break
+
+
         elif side=="left":
             self.summon_friend.click_for_hell
             if not self.wait_end_for_hell(self.ok,0.5,4):
                 self.summon_friend.click_for_hell
 
-        print(self.summon_friend.filename+"clicked")
-        time.sleep(0.2)
-
-        if side=="right":
-            if self.wait_end(self.ok,0.3,7):
-                print(self.ok.filename+" was found")
-                for i in range(3):
-                    self.ok.click
-                    print(self.ok.filename+"clicked")
-                    if self.wait_end(nexturl,0.5,8) is True:
-                        break
-            else:
-                print("ok was not found. search for verification")
-                if self.verify1.judge:
-                    print(self.verify1.pos)
-                    pygame.mixer.music.play(1)
-                    print("verify1 shows up")
-                    pd.DataFrame(["verify1",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
-                    sys.exit()
-                elif self.verify2.judge:
-                    print(self.verify1.pos)
-                    pygame.mixer.music.play(1)
-                    print("verify2 shows up")
-                    pd.DataFrame(["verify2",datetime.datetime.now()]).to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format("verify "+str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
-                    sys.exit()
-                else:
-                    #リロード、ブックマーク
-                    print("verification cleared. "+self.ok.filename+" was not found. reload.")
-                    self.if_move([self.reload,self.quest_supporter],self.quest_supporter,[1],n-1)
-                    return  self.friend_phase1(nexturl,side="right",n=n-1)
-        elif side=="left":
             if self.wait_end_for_hell(self.ok,0.5,20):
                 print(self.ok.filename+" was found")
                 self.ok.click_for_hell
