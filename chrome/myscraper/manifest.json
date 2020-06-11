@@ -1,0 +1,17 @@
+{
+  "name": "My Scraper",
+  "description": "scraping test",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_popup": "foreground/popup.html"
+  },
+  "content_scripts": [{
+    "matches": ["http://www.google.co.jp/*", "https://www.google.co.jp/*"],
+    "js": ["doScraping.js"],
+    "run_at": "document_end"
+  }],
+  "permissions": [
+    "tabs"
+  ]
+}
