@@ -5,7 +5,11 @@ function sendMessage(e) {
       hp1 : document.getElementsByClassName("txt-hp-value")[0].textContent,
       hp2 : document.getElementsByClassName("txt-hp-value")[1].textContent,
       hp3 : document.getElementsByClassName("txt-hp-value")[2].textContent,
-      hp4 : document.getElementsByClassName("txt-hp-value")[3].textContent
+      hp4 : document.getElementsByClassName("txt-hp-value")[3].textContent,
+      bar1 : document.getElementsByClassName("txt-gauge-value")[3].textContent,
+      bar2 : document.getElementsByClassName("txt-gauge-value")[4].textContent,
+      bar3 : document.getElementsByClassName("txt-gauge-value")[5].textContent,
+      bar4 : document.getElementsByClassName("txt-gauge-value")[6].textContent,
   });
 
 }
