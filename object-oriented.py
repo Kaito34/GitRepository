@@ -1,5 +1,6 @@
 # encoding: utf_8
-
+from bs4 import BeautifulSoup
+import pyperclip
 import pyautogui as pg
 import os
 import sys
@@ -11,6 +12,21 @@ import cv2
 import json
 import requests
 import pandas as pd
+import pprint
+import sys
+import cv2
+import os
+import numpy as np
+import pandas as pd
+from PIL import Image
+from  pyocr import pyocr
+import pyocr.builders
+import pytesseract
+import time
+import datetime
+import re
+import pyautogui as pg
+import random
 
 
 pg.PAUSE = 0.02
@@ -147,7 +163,7 @@ class Image_recognition:
         if self.filename =='dummy':
             print("pass the click action")
             pass
-        elif self.filename == "auto":
+        elif self.filename == "auto.png":
             print("auto button click phase")
             self.pos_x,self.pos_y =  pg.locateCenterOnScreen(self.filename,grayscale=True,confidence=0.8,region=regionbox)
             self.height, self.width = self.size
@@ -267,6 +283,11 @@ class Read_img:
         self.l[60] = self.play_again = Image_recognition("play_again.png")
         self.l[61] = self.play_next = Image_recognition("play_next.png")
         self.l[62] = self.close = Image_recognition("close.png")
+        self.l[63] = self.joinaroom = Image_recognition("joinaroom.png")
+        self.l[64] = self.enter_id = Image_recognition("enter_id.png")
+        self.l[65] = self.players = Image_recognition("players.png")
+        self.l[66] = self.request_backup = Image_recognition("request_backup.png")
+        self.l[67] = self.request_backup1 = Image_recognition("request_backup1.png")
 
 
         self.dummy = Image_recognition('dummy')
@@ -439,7 +460,7 @@ class BattleFlow(Read_img):
                         self.ok.click
                         print(self.ok.filename+" clicked")
                         if self.wait_end(nexturl,0.3,7) is True:
-                            break
+                            return 0
                         else:
                             #okボタンを押せなかった場合リロード
                             for i in range(3):
@@ -468,7 +489,7 @@ class BattleFlow(Read_img):
                     #再クリック 3回目のみリロード
                     else:
                         if i<2:
-                            break
+                            pass
                         else:
                             print("verification cleared. "+self.ok.filename+" was not found. reload.")
                             for i in range(3):
@@ -593,6 +614,202 @@ class BattleFlow(Read_img):
     """ アビ召喚石指定体力計測オート
     def attack_phase7(self):
     """
+    @property
+    #hpに基づいて行動する　
+    def attack_phase_hp(self):
+        #attackが出るまで待機
+        if self.wait_end(self.raid_multi,0.3,3) is True:
+            while self.wait_end(self.attack,0.3,15) is False:
+                self.reload.click
+        self.hp_attack()
+
+
+
+    #とりあえずグリム用
+    #ダメージの秒速を測る, ＨＰ別にアビを帰る
+    """todo
+    体力の読み込みの不備
+    リロ殴り不備"""
+    def hp_attack(self):
+        """
+        self.start = time.time()
+        #体力に応じて行動を変える
+        #体力0の時、もしくはリロード中につき0のとき
+        self.end = time.time()
+        """
+        while self.wait_end(self.players,0.3,5) is False:
+            time.sleep(1)
+
+        pg.moveTo(random.uniform(689,757),random.uniform(597,654),0.5)
+        if Get_chrome().main()[0] <= 10:
+            print("撤退")
+            return
+
+        while self.wait_end(self.attack,0.3,5) is False:
+            time.sleep(1)
+
+        while True:
+            #todo モッシュでリロ殴り
+            #優先度高
+            self.abi_set(0,[0]) #主人公1アビ
+            if Get_chrome().main()[0] <= 55:
+                break
+            if self.ok.judge:
+                break
+            #優先度中
+            self.abi_set(2,[2]) #ヴァンピィ3アビ
+            if Get_chrome().main()[0] <= 55:
+                break
+            if self.ok.judge:
+                return
+            self.abi_set(1,[2]) #ヴァジラ3アビ
+            if Get_chrome().main()[0] <= 55:
+                break
+            if self.ok.judge:
+                return
+            self.abi_set(3,[1,0]) #ヴェイン2,1アビ
+            if Get_chrome().main()[0] <= 55:
+                break
+            if self.ok.judge:
+                return
+            self.abi_set(0,[3]) #主人公3アビ モッシュ
+            if Get_chrome().main()[0] <= 55:
+                break
+            if self.ok.judge:
+                return
+
+            break
+
+        #召喚石召喚
+        print("召喚石召喚")
+        for i in range(1,13):
+            pg.click(random.uniform(528,592),random.uniform(736,895))
+            if self.wait_end(self.summon_battle,0.3,3) is False:
+                pg.click(random.uniform(528,592),random.uniform(736,895))
+                if i%4 == 0:
+                    self.reload.click
+            if self.ok.judge:
+                return
+            else:
+                break
+        for i in range(1,13):
+            self.summon_battle.click
+            if self.wait_end(self.ok,0.3,3) is False:
+                self.summon_battle.click
+                if i%4 == 0:
+                    self.reload.click
+            else:
+                break
+        for i in range(1,13):
+            self.ok.click
+            if self.wait_end(self.attack,0.3,3) is False:
+                self.ok.click
+                if i%4 == 0:
+                    self.reload.click
+            else:
+                break
+
+
+        #50%を切ったら攻撃
+        print("50%を切ったら攻撃")
+        self.counter = 0
+        while True:
+            self.counter += 1
+            #TODO 条件を時速に変える
+            if self.counter == 10:
+                while self.wait_end(self.request_backup1,0.3,3) is False:
+                    self.request_backup.click
+                while self.wait_end(self.ok,0.3,3) is False:
+                    self.request_backup1.click
+                self.ok.click
+
+            pg.moveTo(random.uniform(689,757),random.uniform(597,654),0.5)
+            if Get_chrome().main()[0] <= 50:
+                print("攻撃開始")
+                self.attack.click
+                while True:
+                    if self.wait_end(self.attack,0.3,3) is False:
+                        break
+                    else:
+                        self.attack.click
+                break
+            elif self.ok.judge:
+                return
+            else:
+                pg.moveTo(random.uniform(489,457),random.uniform(297,254),0.5)
+                time.sleep(0.2)
+
+        #todo 合体召喚の対処
+        #リロード&attack
+        while True:
+            #リロード、アタック、数値読み込み
+            print("完全に攻撃し始めたらリロード")
+            if self.wait_end(self.players,0.3,3) is True and self.wait_end(self.attack,0.3,2) is False:
+                self.reload.click
+                #reloadの終了条件->バトル画面では常に表示されるplayersがない
+                if self.wait_end(self.auto,0.3,20) is True:
+                    self.auto.click
+                    #autoの終了条件->semiがある
+                    if self.wait_end(self.players,0.3,3) is True:
+                        if self.wait_end(self.semi,0.3,3) is True:
+                            break
+
+                elif self.wait_end(self.ok,0.3,20) is True:
+                    print("バトル終了")
+                    continue
+
+                else: #autoが6秒待機してもないならリロ
+                    self.reload.click
+
+
+            pg.moveTo(random.uniform(689,757),random.uniform(597,654),0.5)
+            self.hplist = Get_chrome().main()
+            pg.moveTo(random.uniform(489,457),random.uniform(297,254),0.5)
+            time.sleep(0.2)
+            if int(self.hplist[0]) == 0 :
+                break
+            elif int(self.hplist[1]) == 0 and int(self.hplist[2]) == 0 and int(self.hplist[3]) == 0 and int(self.hplist[4]) == 0:
+                break
+            elif self.ok.judge:
+                return
+            else:
+                pass
+
+            while True:
+                if self.wait_end(self.attack_cancel,0.3,3) is False:
+                    break
+
+        #autoで止まってしまった、リロが遅い
+
+
+        #秒速が間に合いそうならモッシュでリロ殴り
+
+
+    def pasteid(self):
+        #bookmark click
+        while True:
+            self.bookmark.click
+            if self.wait_end(self.enter_id,0.3,7) is True:
+                break
+        #enter id click
+        while self.wait_end(self.joinaroom,0.3,3) is False:
+            pg.moveTo(random.uniform(514,644),random.uniform(440,474))
+            pg.click(random.uniform(514,644),random.uniform(440,474))
+        #id box click
+        while True:
+            self.x,self.y =random.uniform(195,371),random.uniform(756,765)
+            pg.moveTo(self.x,self.y)
+            for i in range(2):pg.click(self.x,self.y )
+            time.sleep(random.uniform(0.3,0.5))
+            pg.hotkey("ctrl","a")
+            time.sleep(random.uniform(0.3,0.5))
+            pg.hotkey("ctrl","v")
+            time.sleep(random.uniform(0.3,0.5))
+            pg.moveTo(random.uniform(441,574),random.uniform(742,771))
+            pg.click(random.uniform(441,574),random.uniform(742,771))
+            if self.wait_end(self.summon_friend,0.3,7) is True:
+                break
+
 
     """hellをスキップできるかをチェックする
     hellでクエストがあるかどうかを判断
@@ -667,6 +884,61 @@ class BattleFlow(Read_img):
                 if self.counter > 5:
                     self.reload_chrome.click
                     break
+
+
+    #キャラクターをクリックする
+    def chara_click(self,num):
+        self.chara_list=[[170+random.uniform(20,-20),812+random.uniform(50,-50)],
+                         [260+random.uniform(20,-20),812+random.uniform(50,-50)],
+                         [355+random.uniform(20,-20),812+random.uniform(50,-50)],
+                         [455+random.uniform(20,-20),812+random.uniform(50,-50)]
+                        ]
+
+        self.r = random.uniform(0,100)
+        pg.moveTo(self.chara_list[num][0],self.chara_list[num][1],random.uniform(0.2,0.1))
+        if self.r > 50:
+            for i in range(1):pg.click(self.chara_list[num][0],self.chara_list[num][1])
+        else:
+            for i in range(2):pg.click(self.chara_list[num][0],self.chara_list[num][1])
+
+    #アビリティをクリックする
+    def abi_click(self,num):
+
+        self.abi_list = [[random.uniform(272,314),random.uniform(827,876)],
+                         [random.uniform(368,412),random.uniform(827,876)],
+                         [random.uniform(467,511),random.uniform(827,876)],
+                         [random.uniform(564,608),random.uniform(827,876)]
+                        ]
+        self.r = random.uniform(0,100)
+        pg.moveTo(self.abi_list[num][0],self.abi_list[num][1],random.uniform(0.2,0.1))
+        if self.r > 50:
+            for i in range(1):pg.click(self.abi_list[num][0],self.abi_list[num][1])
+        else:
+            for i in range(1):pg.click(self.abi_list[num][0],self.abi_list[num][1])
+
+    #attackボタンを押してアビ使用画面から戻る
+    def back_click(self):
+        """
+        Point(x=115, y=633)
+        Point(x=216, y=676)
+        """
+        pg.moveTo(random.uniform(120,210),random.uniform(635,650),random.uniform(0.2,0.1))
+        self.x,self.y = random.uniform(120,210),random.uniform(635,650)
+        if self.r > 50:
+            for i in range(1):pg.click(self.x,self.y)
+        else:
+            for i in range(2):pg.click(self.x,self.y)
+
+
+    def abi_set(self,c,al):
+        time.sleep(random.uniform(0.3,0.1))
+        self.chara_click(c)
+        for i in al:
+            time.sleep(random.uniform(0.1,0.2))
+            self.abi_click(i)
+        time.sleep(random.uniform(0.3,0.1))
+        self.back_click()
+
 
 class Ac(BattleFlow):
     charge_judge = False
@@ -814,6 +1086,124 @@ class Ac(BattleFlow):
                     self.reload_chrome.click
                     break
 
+class Get_chrome:
+    pretxt = [100,10000,10000,10000,10000]
+    d_time = 0  #時間の変化量
+    d_speed = 0 #体力減少量の変化量
+    speed = 0 #体力が全体を通してどれだけ減ったか
+    init_time = 0 #測定開始時間
+
+    def sch(self):
+        sc = pg.screenshot(region=(1270,181,400,30))
+        sc.save(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\screenshots\info.png")
+
+    def num_read(self):
+        url_img = r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\screenshots\info.png"
+        img = Image.open(url_img)
+        number = pytesseract.image_to_string(img)
+        number = number.replace("@", "0")
+        number = number.replace("e", "0")
+        number = number.replace("@", "0")
+        print(number)
+        if number == "":
+            print("error")
+            sys.exit()
+        return number
+
+    def main(self):
+        start = time.time()
+        time.sleep(0.1)
+        self.sch()
+        time.sleep(0.1)
+        txt = self.num_read()
+
+        text = txt.split(" ")
+        texts = []
+
+        #時速を測る
+        if Get_chrome.d_time == 0:
+            init_time = start
+        else:
+            Get_chrome.speed = (Get_chrome.pretxt[0]-text[0]) / (start - Get_chrome.d_time)
+        Get_chrome.df_time = start
+        Get_chrome.speed += Get_chrome.d_speed
+        print(Get_chrome.d_time)
+        print(Get_chrome.d_speed)
+        print(Get_chrome.speed)
+        print(Get_chrome.init_time)
+
+        try:
+            for i in range(len(text)):
+                texts.append( int(text[i]) )
+            text = texts
+        except:
+            text = Get_chrome.pretxt
+
+        text.append(Get_chrome.d_speed)
+        print(text)
+        Get_chrome.pretxt = text
+
+        return text
+
+
+'''スクレイピングをするクラス'''
+class Get_id:
+    def __init__(self,battlename):
+        url_dict ={
+            "アバターhl" : 'https://search.yahoo.co.jp/realtime/search?ei=UTF-8&fr=rts_top&aq=0&oq=%E3%82%A2%E3%83%90%E3%82%BF%E3%83%BC&at=s&ts=41854&p=%E3%82%A2%E3%83%90%E3%82%BF%E3%83%BC+lv120+%E5%8F%82%E6%88%A6id&meta=vc%3D',
+            "セレストhl": "https://search.yahoo.co.jp/realtime/search?ei=UTF-8&fr=rts_top&aq=1&oq=%E3%81%9B%E3%82%8C&at=s&ts=53296&p=%E3%82%BB%E3%83%AC%E3%82%B9%E3%83%88+%E3%83%9E%E3%82%B0%E3%83%8A+lv100+%E5%8F%82%E6%88%A6id&meta=vc%3D",
+            "シヴァhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%B7%E3%83%B4%E3%82%A1+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "ルシファーn" : "https://search.yahoo.co.jp/realtime/search?p=%E3%83%AB%E3%82%B7%E3%83%95%E3%82%A1%E3%83%BC+%E5%8F%82%E6%88%A6id+lv150&ei=UTF-8&fr=rts_top",
+            "グランデ" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%87+lv100+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "リンドヴルム" : "https://search.yahoo.co.jp/realtime/search?p=%E3%83%AA%E3%83%B3%E3%83%89%E3%83%B4%E3%83%AB%E3%83%A0+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "オリヴィエhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%AA%E3%83%AA%E3%83%B4%E3%82%A3%E3%82%A8+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "アヌビスhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%A2%E3%83%8C%E3%83%93%E3%82%B9+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top",
+            "グリムhl" : "https://search.yahoo.co.jp/realtime/search?p=%E3%82%B0%E3%83%AA%E3%83%BC%E3%83%A0%E3%83%8B%E3%83%AB+lv120+%E5%8F%82%E6%88%A6id&ei=UTF-8&fr=rts_top"
+        }
+        self.battlename = battlename
+        self.target_url=url_dict[battlename]
+
+
+    '''スクレイピングでマルチidを取得、コピー。'''
+    def get_id(self):
+        self.ids_b = [0 for i in range(5)]
+
+        #リンクの取得
+        #Requestsを使って、webから取得
+        r = requests.get(self.target_url)
+
+        #要素を抽出
+        soup = BeautifulSoup(r.text, 'lxml')
+
+        self.ids = []
+        self.id = 0
+        for i in range(5):
+            elem = soup.find_all('h2')[i].contents[0]
+            regex = re.compile("\w{8}")
+            mo = regex.search(elem)
+            try:
+                self.id = mo.group(0)
+                self.ids.append(self.id)
+            except:
+                pass
+
+
+        #前回取得と被っていないものを取得、クリップボードへ
+        for j in range(len(self.ids_b )):
+            for i in range(len(self.ids)):
+                    if self.ids[i] != self.ids_b [j]:
+                        self.id = self.ids[i]
+
+        print(self.id)
+        pyperclip.copy(self.id)
+
+        return self.id
+
+
+    '''idを入力する(BattleFlowクラスを使える)'''
+    def enter_id(self):
+        self.idpaste = self.get_id()
+        pyperclip.copy(self.idpaste)
 
 class yonzo(BattleFlow):
     def ex(self):
@@ -832,15 +1222,21 @@ class yonzo(BattleFlow):
                 self.if_move([self.reload,self.ok],self.result_multi,[3])
                 while self.wait_end(self.play_again,0.3,3) is False:
                     if self.ok.judge:
+                        print(self.ok.filename+" clicked")
                         self.ok.click
                     else:
+                        print("somewhere clicked")
                         pg.click(500,500)
                 while self.wait_end(self.play_next,0.3,3) is False:
-                    if self.play_again.judge:
+                    if self.wait_end(self.play_again,0.3,5):
+                        print(self.play_again.filename+" clicked")
                         self.play_again.click
-                    if self.close.judge:
+                        break
+                    elif self.close.judge:
+                        print(self.close.filename+" clicked")
                         self.close.click
-                self.if_move([self.play_next,self.summon_friend],self.result_multi,[2])
+                while self.wait_end(self.summon_friend,0.3,3) is False:
+                    self.play_next.click
 
 
     def ex_plus(self):
@@ -852,19 +1248,6 @@ class yonzo(BattleFlow):
     def main(self):
         self.ex()
         self.ex_plus()
-
-    def test(self):
-        while self.wait_end(self.play_again,0.3,3) is False:
-            if self.ok.judge:
-                self.ok.click
-            else:
-                pg.click(500,500)
-        while self.wait_end(self.play_next,0.3,3) is False:
-            if self.play_again.judge:
-                self.play_again.click
-            if self.close.judge:
-                self.close.click
-        self.if_move([self.play_next,self.summon_friend],self.result_multi,[2])
 
     def test2(self):
         print(self.close.pos)
@@ -886,7 +1269,7 @@ def send_slack(text):
 
 #global 'summon_friend.png'"varuna.png"
 info = {
-'summon_friend': 'summon_friend.png',
+'summon_friend': "varuna.png",
 'summon_battle':'rose.png',
 'event_url':'event_url.png' ,
 "hell" : "DOSS.png"
@@ -960,8 +1343,11 @@ result_multi_win.pngwas not there. wait for 5 sec
 def Yz():
     Y = yonzo(info)
     #Y.attack_phase_full()
-    for i in range(3):
+    for i in range(4):
         Y.main()
+    pygame.mixer.init()
+    pygame.mixer.music.load("Vikala.mp3")
+    pygame.mixer.music.play(1)
 
 def main():
     try:
@@ -977,6 +1363,17 @@ def main():
     pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
     pygame.mixer.music.play(1)
 
+def multi():
+    B = BattleFlow(info)
+    G = Get_id("グリムhl")
+    #"""
+    G.enter_id()
+    B.pasteid()
+    B.friend_phase1(B.raid_multi)
+    print("FRIEND PHASE FIN")
+    #"""
+    B.attack_phase_hp()
+
 def ac():
     A = Ac(info)
     A.arcarum()
@@ -986,4 +1383,9 @@ def ac():
     pygame.mixer.music.play(1)
 
 if __name__ == "__main__":
-    Yz()
+    #Yz()
+
+    for i in range(3):
+        multi()
+
+    #Get_chrome().main()
