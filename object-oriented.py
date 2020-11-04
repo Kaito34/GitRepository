@@ -288,6 +288,8 @@ class Read_img:
         self.l[65] = self.players = Image_recognition("players.png")
         self.l[66] = self.request_backup = Image_recognition("request_backup.png")
         self.l[67] = self.request_backup1 = Image_recognition("request_backup1.png")
+        self.l[68] = self.skip = Image_recognition("skip.png")
+        self.l[69] = self.play_story = Image_recognition("play_story.png")
 
 
         self.dummy = Image_recognition('dummy')
@@ -301,6 +303,7 @@ class Read_img:
                     print("error occured while preparing images")
                     print(self.l[i].filename+" does not exist.")
                     sys.exit()
+        print("read thoroughly")
 
 
 '''フローを実行するクラス
@@ -442,7 +445,7 @@ class BattleFlow(Read_img):
         pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
 
 
-        print("n"+str(n)+"回目")
+        print("n="+str(n)+"回目")
         if n == 0:
             sys.exit()
 
@@ -940,6 +943,32 @@ class BattleFlow(Read_img):
         self.back_click()
 
 
+class MoveFlow(Read_img):
+    """バトル以外画面での遷移クラス"""
+
+    """画像が出るまで待機するメソッド"""
+    def wait_end(self,fileobj,sec,max):
+        self.counter=0
+        print("wait till the end of "+fileobj.filename)
+        while True:
+            self.counter+=1
+            if fileobj.judge:
+                return True
+            elif self.counter>max:
+                return False
+            else:
+                time.sleep(sec)
+
+
+    def skip_and_next(self):
+        if self.wait_end(self.play_story,1,5):
+            self.play_story.click
+        if self.wait_end(self.skip,1,5):
+            self.skip.click
+        if self.wait_end(self.ok,1,5):
+            self.ok.click
+        
+
 class Ac(BattleFlow):
     charge_judge = False
 
@@ -1269,7 +1298,7 @@ def send_slack(text):
 
 #global 'summon_friend.png'"varuna.png"
 info = {
-'summon_friend': "varuna.png",
+'summon_friend': "friend_box.png",
 'summon_battle':'rose.png',
 'event_url':'event_url.png' ,
 "hell" : "DOSS.png"
@@ -1281,7 +1310,7 @@ logs = []
 
 B= BattleFlow(info)
 
-def test(num,battle_genre):
+def test(num,battle_genre="test"):
     for i in range(1,num+1):
         start = time.perf_counter()
         log = [0]*4
@@ -1291,9 +1320,9 @@ def test(num,battle_genre):
         print(str(i)+"回目のバトルです")
 
         #フレンド選択画面におけるフレンド召喚石の設定
-        B.friend_phase1(B.raid_multi)
+        B.friend_phase1(B.raid)
         print("friend_phase1 fin")
-        B.attack_phase1
+        B.attack_phase5
         print("attack_phase fin")
 
 
@@ -1330,8 +1359,8 @@ def test(num,battle_genre):
         log[3] = end-start
         logs.append(log)
 
-    df = pd.DataFrame(logs,columns=["difficulty","battle num","hell","time"])
-    df.to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format(str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
+    #df = pd.DataFrame(logs,columns=["difficulty","battle num","hell","time"])
+    #df.to_csv(r"C:\Users\Kaito Kusumoto\Documents\Python Scripts\グラブル\データ置き場\{}.csv".format(str(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))))
 """
 #stuck over flow
 bookmark_win.pngwas found
@@ -1382,10 +1411,18 @@ def ac():
     pygame.mixer.music.load("info-girl1-syuuryou1.mp3")
     pygame.mixer.music.play(1)
 
+def moveflow():
+    M = MoveFlow(info)
+    M.skip_and_next()
+
+
+"""開発案
+・画面に表示されている文字を認識する、もしくはパターンを認識して帰納的に
+
+"""
+
 if __name__ == "__main__":
     #Yz()
-
-    for i in range(3):
-        multi()
-
+    
+    test(3)
     #Get_chrome().main()
